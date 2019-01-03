@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:SkiaSharpTest"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
+             x:Class="SkiaSharpTest.MainPage"
+             Padding="2,2,2,0" BackgroundColor="Yellow">
+    <ContentPage.Content >
+        <Grid Margin="0" Padding="0" RowSpacing="1">
+            <Grid.RowDefinitions >
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <skia:SKCanvasView Grid.Row="0" Margin="0" 
+                x:Name="canvasViewPS"
+                PaintSurface="CanvasView_PressureSpeed"/>
+            <Grid Grid.Row="1" Margin="0" Padding="0" RowSpacing="1" >
+                <Grid.RowDefinitions >  
+                    <RowDefinition Height="45"/>
+                    <RowDefinition Height="45"/>
+                    <RowDefinition Height="45"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackLayout Orientation="Horizontal" Margin="0" Padding="0" Grid.Row="0" BackgroundColor="White" >
+                    <Label Text="壓力範圍" FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />                    
+                    <Entry Text="760"      FontSize="Large" VerticalOptions="Start"  TextColor="Black" Keyboard="Numeric" Margin="0" />
+                    <Label Text="~"        FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
+                    <Entry Text="0.01"  RelativeLayout.HeightConstraint="0"    FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
+                    <Label Text="Torr"     FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
+                </StackLayout>
+                <StackLayout Orientation="Horizontal" Margin="0"  Padding="0" Grid.Row="1" BackgroundColor="White">
+                    <Label Text="桶槽容量" FontSize="Large" VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
+                    <Entry Text="136"      FontSize="Large" VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
+                    <Label Text="Liters"   FontSize="Large" VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
+                </StackLayout >
+                <StackLayout Orientation="Horizontal" Margin="0"  Padding="0" Grid.Row="2" BackgroundColor="White">
+                    <Button x:Name="Btn1" IsEnabled="False" Text="抽氣過程" Clicked="DrawTP_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Large"  Grid.Row="3" Margin="10,0" Padding="0" BorderRadius="0" />
+                    <Button x:Name="Btn2" IsEnabled="False" Text="幫浦性能" Clicked="DrawPS_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Large"  Grid.Row="4" Margin="10,0" Padding="0" BorderRadius="0"/>
+                </StackLayout>
+                <ListView x:Name="PumpListView" IsVisible="True" ItemTapped="PumpListView_ItemTapped" SeparatorColor = "Green" Grid.Row="3" >
+                    <ListView.ItemTemplate >
+                        <DataTemplate >
+                            <ViewCell >
+                                <StackLayout Orientation="Horizontal" Padding="0" BackgroundColor="White">
+                                    <Label Text="{Binding Maker}"   FontSize="Large" />
+                                    <Label Text="{Binding PartNum}" FontSize="Large" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Grid>       
+    </ContentPage.Content>
+</ContentPage>
