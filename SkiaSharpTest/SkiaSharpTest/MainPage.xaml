@@ -11,33 +11,55 @@
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
+            
             <skia:SKCanvasView Grid.Row="0" Margin="0" 
                 x:Name="canvasViewPS"
                 PaintSurface="CanvasView_PressureSpeed"/>
-            <Grid Grid.Row="1" Margin="0" Padding="0" RowSpacing="1" >
-                <Grid.RowDefinitions >  
-                    <RowDefinition Height="45"/>
-                    <RowDefinition Height="45"/>
-                    <RowDefinition Height="45"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <StackLayout Orientation="Horizontal" Margin="0" Padding="0" Grid.Row="0" BackgroundColor="White" >
-                    <Label Text="壓力範圍" FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />                    
-                    <Entry Text="760"      FontSize="Large" VerticalOptions="Start"  TextColor="Black" Keyboard="Numeric" Margin="0" />
-                    <Label Text="~"        FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
-                    <Entry Text="0.01"  RelativeLayout.HeightConstraint="0"    FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
-                    <Label Text="Torr"     FontSize="Large"  VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
-                </StackLayout>
-                <StackLayout Orientation="Horizontal" Margin="0"  Padding="0" Grid.Row="1" BackgroundColor="White">
-                    <Label Text="桶槽容量" FontSize="Large" VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
-                    <Entry Text="136"      FontSize="Large" VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
-                    <Label Text="Liters"   FontSize="Large" VerticalOptions="CenterAndExpand" TextColor="Black" Margin="0" />
-                </StackLayout >
+            
+            <StackLayout Grid.Row="1">
+                
                 <StackLayout Orientation="Horizontal" Margin="0"  Padding="0" Grid.Row="2" BackgroundColor="White">
-                    <Button x:Name="Btn1" IsEnabled="False" Text="抽氣過程" Clicked="DrawTP_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Large"  Grid.Row="3" Margin="10,0" Padding="0" BorderRadius="0" />
-                    <Button x:Name="Btn2" IsEnabled="False" Text="幫浦性能" Clicked="DrawPS_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Large"  Grid.Row="4" Margin="10,0" Padding="0" BorderRadius="0"/>
+                    <Button x:Name="Btn1" Text="抽氣過程" Clicked="DrawTP_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium" Margin="5,0" Padding="0" />
+                    <Button x:Name="Btn2" Text="幫浦性能" Clicked="DrawPS_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium"  Margin="5,0" Padding="0" />
                 </StackLayout>
-                <ListView x:Name="PumpListView" IsVisible="True" ItemTapped="PumpListView_ItemTapped" SeparatorColor = "Green" Grid.Row="3" >
+                
+                <Grid IsVisible="True" >
+                    <Grid.RowDefinitions >
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="6*"/>
+                        <ColumnDefinition Width="4*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="1" Grid.Row="0" Text="起點壓力(Torr)" FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Label Grid.Column="1" Grid.Row="1" Text="終點壓力(Torr)" FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Label Grid.Column="1" Grid.Row="2" Text="氣筒容量(L)"    FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Label Grid.Column="1" Grid.Row="3" Text="風管直徑(cm)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Label Grid.Column="1" Grid.Row="4" Text="風管長度(cm)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Label Grid.Column="1" Grid.Row="5" Text="直角接頭(個)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Entry Grid.Column="2" Grid.Row="0" x:Name="entryPH" Text="760"  MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
+                    <Entry Grid.Column="2" Grid.Row="1" x:Name="entryPL" Text="0.05" MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
+                    <Entry Grid.Column="2" Grid.Row="2" x:Name="entryV"  Text="136"  MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0" />
+                    <Entry Grid.Column="2" Grid.Row="3" x:Name="entryD"  Text="8"    MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
+                    <Entry Grid.Column="2" Grid.Row="4" x:Name="entryL"  Text="100"  MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
+                    <Entry Grid.Column="2" Grid.Row="5" x:Name="entry9"  Text="1"    MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0" />
+                    <Button Grid.Column="3" Grid.Row="0" x:Name="btnPH" Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
+                    <Button Grid.Column="3" Grid.Row="1" x:Name="btnPL" Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
+                    <Button Grid.Column="3" Grid.Row="2" x:Name="btnV"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
+                    <Button Grid.Column="3" Grid.Row="3" x:Name="btnL"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
+                    <Button Grid.Column="3" Grid.Row="4" x:Name="btnD"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
+                    <Button Grid.Column="3" Grid.Row="5" x:Name="btn9"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
+                </Grid>
+                
+                <ListView x:Name="PumpListView" IsVisible="False" ItemTapped="PumpListView_ItemTapped" SeparatorColor = "Green" >
                     <ListView.ItemTemplate >
                         <DataTemplate >
                             <ViewCell >
@@ -49,7 +71,8 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-            </Grid>
-        </Grid>       
+            </StackLayout>
+            
+    </Grid> 
     </ContentPage.Content>
 </ContentPage>
