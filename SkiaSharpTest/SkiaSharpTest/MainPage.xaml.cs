@@ -16,6 +16,7 @@ namespace SkiaSharpTest
         List<XY_node> Curve = new List<XY_node>();
         List<PSTs_node> VacCalc = new List<PSTs_node>();
         SKBitmap savePumpBitmap, savePSBitmap,saveTPBitmap ;
+        int bitMapNum=1;
 
         float startPressure,endPressure;
         int   incrementNum = 100;
@@ -92,12 +93,7 @@ namespace SkiaSharpTest
                         new XY_node(){ValueX= 0.0456f, ValueY= 383.1213f },
                         new XY_node(){ValueX= 0.0304f, ValueY= 305.6279f }
                     }
-                },
-                new PumpInfo (){Maker ="ULVAC" ,   PartNum ="PMB600" , PSList = new List<XY_node> { new XY_node(){ValueX=760,ValueY=24} , new XY_node(){ValueX=100,ValueY=8} , new XY_node(){ValueX=10,ValueY=131} , new XY_node(){ValueX=1,ValueY=167}  , new XY_node(){ValueX=0.1f,ValueY=161} , new XY_node(){ValueX=0.01f,ValueY=128} } },
-                new PumpInfo (){Maker ="HanBell" , PartNum ="PS904" ,  PSList = new List<XY_node> {new XY_node(){ValueX=760,ValueY=33} , new XY_node(){ValueX=6.01f,ValueY=33} , new XY_node(){ValueX=6,ValueY=257} , new XY_node(){ValueX=1,ValueY=260} , new XY_node(){ValueX=0.1f,ValueY=220} , new XY_node(){ValueX=0.01f,ValueY=164} , new XY_node(){ValueX=0.001f,ValueY=92} , new XY_node(){ValueX=0.0001f,ValueY=20} } },
-                new PumpInfo (){Maker ="LeyBold" , PartNum ="WSU2003", PSList = new List<XY_node> { new XY_node(){ValueX=760,ValueY=181} , new XY_node(){ValueX=100,ValueY=222} , new XY_node(){ValueX=15,ValueY=417} , new XY_node(){ValueX=10,ValueY=472}  , new XY_node(){ValueX=1,ValueY=500} , new XY_node(){ValueX=0.1f,ValueY=417} , new XY_node(){ValueX=0.01f,ValueY=200} } },
-                new PumpInfo (){Maker ="ULVAC" ,   PartNum ="PMB602" , PSList = new List<XY_node> { new XY_node(){ValueX=760,ValueY=24} , new XY_node(){ValueX=100,ValueY=8} , new XY_node(){ValueX=10,ValueY=131} , new XY_node(){ValueX=1,ValueY=167}  , new XY_node(){ValueX=0.1f,ValueY=161} , new XY_node(){ValueX=0.01f,ValueY=128} } }
-
+                }
             };
 
             PumpListView.ItemsSource = PumpListData;
@@ -126,7 +122,15 @@ namespace SkiaSharpTest
                 saveTPBitmap = new SKBitmap(info.Width, info.Height);
             }
             canvas.Clear(SKColors.White);
-            canvas.DrawBitmap(saveTPBitmap, 0, 0);
+
+            if (bitMapNum == 1)
+            {
+                canvas.DrawBitmap(saveTPBitmap, 0, 0);
+            }
+            if (bitMapNum == 2)
+            {
+                canvas.DrawBitmap(savePSBitmap, 0, 0);
+            }
 
         }
 
@@ -158,8 +162,9 @@ namespace SkiaSharpTest
             {
                 VacCalc.Add(new PSTs_node(){ Pressur= (float) Math.Log10( TempList[i].ValueX), Spee = TempList[i].ValueY, Tim =0, Secon= 0 });
             }
-            PumpListView.IsVisible = false ;
-            Btn2.IsEnabled = true; 
+            //PumpListView.IsVisible = false ;
+            //Btn2.IsEnabled = true; 
+            canvasViewPS.InvalidateSurface();
         }
 
         SKPaint blueStrokePaint = new SKPaint
@@ -456,16 +461,29 @@ namespace SkiaSharpTest
                 {
                     newcanvas.DrawLine(VacCalc[i].Tim  * scaleX + paddingL, canvasHeight - paddingU - (VacCalc[i].Pressur-pressMin )  * scaleY, VacCalc[i + 1].Tim * scaleX + paddingL, canvasHeight - paddingU - (VacCalc[i + 1].Pressur -pressMin )* scaleY, blueStrokePaint);
                 }
-            }
 
-
-
-            canvasViewPS.InvalidateSurface();
+                canvasViewPS.InvalidateSurface();
+            }          
         }
 
         public void DrawTP_ButtenClicked(object sender, EventArgs e)
-        {
-           
+        {           
+            if (bitMapNum == 1)
+            {
+                PumpListView.IsVisible = true ;
+                ChamberInfoGrid1.IsVisible  = false ;
+                
+            }
+            if (bitMapNum == 2)
+            {
+                PumpListView.IsVisible = false ;
+                ChamberInfoGrid1.IsVisible = true ;
+               
+            }
+            canvasViewPS.InvalidateSurface();
+            bitMapNum++;
+            if (bitMapNum > 2 ^ bitMapNum < 1)
+                bitMapNum = 1;
         }
 
         public float midPoint(float X0, float Y0, float X1, float Y1, float Mid)

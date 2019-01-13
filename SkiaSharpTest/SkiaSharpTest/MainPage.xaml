@@ -19,11 +19,11 @@
             <StackLayout Grid.Row="1">
                 
                 <StackLayout Orientation="Horizontal" Margin="0"  Padding="0" Grid.Row="2" BackgroundColor="White">
-                    <Button x:Name="Btn1" Text="抽氣過程" Clicked="DrawTP_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium" Margin="5,0" Padding="0" />
-                    <Button x:Name="Btn2" Text="幫浦性能" Clicked="DrawPS_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium"  Margin="5,0" Padding="0" />
+                    <Button x:Name="Btn1" Text="變更圖表" Clicked="DrawTP_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium" Margin="5,0" Padding="0" />
+                    <Button x:Name="Btn2" Text="參數刷新" Clicked="DrawPS_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium"  Margin="5,0" Padding="0" />
                 </StackLayout>
                 
-                <Grid IsVisible="False" >
+                <Grid x:Name="ChamberInfoGrid1" IsVisible="False" >
                     <Grid.RowDefinitions >
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
