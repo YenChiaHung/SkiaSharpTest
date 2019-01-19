@@ -19,11 +19,10 @@
             <StackLayout Grid.Row="1">
                 
                 <StackLayout Orientation="Horizontal" Margin="0"  Padding="0" Grid.Row="2" BackgroundColor="White">
-                    <Button x:Name="Btn1" Text="變更圖表" Clicked="DrawTP_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium" Margin="5,0" Padding="0" />
-                    <Button x:Name="Btn2" Text="參數刷新" Clicked="DrawPS_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium"  Margin="5,0" Padding="0" />
+                    <Button x:Name="Btn1" Text="下一頁" Clicked="NextPage_ButtenClicked" HorizontalOptions="FillAndExpand" FontSize="Medium" Margin="5,0" Padding="0" />
                 </StackLayout>
-                
-                <Grid x:Name="ChamberInfoGrid1" IsVisible="False" >
+
+                <Grid x:Name="ChamberInfoGrid1" IsVisible="True"  >
                     <Grid.RowDefinitions >
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
@@ -42,24 +41,38 @@
                     <Label Grid.Column="1" Grid.Row="0" Text="起點壓力(Torr)" FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
                     <Label Grid.Column="1" Grid.Row="1" Text="終點壓力(Torr)" FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
                     <Label Grid.Column="1" Grid.Row="2" Text="氣筒容量(L)"    FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
-                    <Label Grid.Column="1" Grid.Row="3" Text="風管直徑(cm)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
-                    <Label Grid.Column="1" Grid.Row="4" Text="風管長度(cm)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
-                    <Label Grid.Column="1" Grid.Row="5" Text="直角接頭(個)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+
                     <Entry Grid.Column="2" Grid.Row="0" x:Name="entryPHigh"  Text="760"  MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
                     <Entry Grid.Column="2" Grid.Row="1" x:Name="entryPLow"   Text="0.05" MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
                     <Entry Grid.Column="2" Grid.Row="2" x:Name="entryVolume" Text="136"  MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0" />
-                    <Entry Grid.Column="2" Grid.Row="3" x:Name="entryDia"    Text="8"    MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
-                    <Entry Grid.Column="2" Grid.Row="4" x:Name="entryLength" Text="100"  MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
-                    <Entry Grid.Column="2" Grid.Row="5" x:Name="entryElbowN" Text="1"    MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0" />
-                    <Button Grid.Column="3" Grid.Row="0" x:Name="btnPH" Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
-                    <Button Grid.Column="3" Grid.Row="1" x:Name="btnPL" Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
-                    <Button Grid.Column="3" Grid.Row="2" x:Name="btnV"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
-                    <Button Grid.Column="3" Grid.Row="3" x:Name="btnL"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
-                    <Button Grid.Column="3" Grid.Row="4" x:Name="btnD"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
-                    <Button Grid.Column="3" Grid.Row="5" x:Name="btn9"  Text="輸入" FontSize="Medium" HorizontalOptions="Center" TextColor="Black" Padding="0" Margin="0"/>
                 </Grid>
-                
-                <ListView x:Name="PumpListView" IsVisible="True" ItemTapped="PumpListView_ItemTapped" SeparatorColor = "Green" >
+
+                <Grid x:Name="TubeInfoGrid1" IsVisible="False" >
+                    <Grid.RowDefinitions >
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="6*"/>
+                        <ColumnDefinition Width="4*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>  
+                    <Label Grid.Column="1" Grid.Row="0" Text="風管直徑(cm)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Label Grid.Column="1" Grid.Row="1" Text="風管長度(cm)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+                    <Label Grid.Column="1" Grid.Row="2" Text="直角接頭(個)"   FontSize="Medium" HorizontalOptions="Start" TextColor="Black" Margin="0"/>
+    
+                    <Entry Grid.Column="2" Grid.Row="0" x:Name="entryDia"    Text="8"    MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
+                    <Entry Grid.Column="2" Grid.Row="1" x:Name="entryLength" Text="100"  MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0"/>
+                    <Entry Grid.Column="2" Grid.Row="2" x:Name="entryElbowN" Text="1"    MaxLength="9" FontSize="Medium" VerticalOptions ="End" TextColor="Black" Keyboard="Numeric" Margin="0" />  
+                </Grid>
+
+                <ListView x:Name="PumpListView" IsVisible="False" ItemTapped="PumpListView_ItemTapped" SeparatorColor = "Green" >
                     <ListView.ItemTemplate >
                         <DataTemplate >
                             <ViewCell >
