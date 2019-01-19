@@ -18,13 +18,12 @@ namespace SkiaSharpTest
         SKBitmap savePumpBitmap, savePSBitmap,saveTPBitmap ;
         int bitMapNum=1;
 
-        float startPressure,endPressure;
+        float startPressure, endPressure, chamberVolume, tubeDia, tubeLength;
+        int elbowNum;
         int   incrementNum = 100;
         float incrementPress, incrementSpeed;
         float paddingL = 0, paddingR = 0, paddingU = 0, paddingD = 0;
-        float canvasWidth;
-        float canvasHeight;
-        float chamberVolume = 100;
+        float canvasWidth, canvasHeight;       
 
         ObservableCollection<PumpInfo> PumpListData;
 
@@ -186,9 +185,68 @@ namespace SkiaSharpTest
         };
 
         public void DrawPS_ButtenClicked(object sender, EventArgs e)
-        {     
-            startPressure = (float)Math.Log10(760);
-            endPressure = (float)Math.Log10(0.05f);
+        {
+            double entryDouble=0;
+            int entryInt = 0;
+            try
+            {
+                Double.TryParse(entryPHigh.Text,out entryDouble );
+            }
+            catch (FormatException ex)
+            {
+                DisplayAlert(ex.Message,"Pressure High","Cancel");
+            }
+            startPressure = (float)Math.Log10(entryDouble );
+
+            try
+            {
+                Double.TryParse(entryPLow.Text, out entryDouble );
+            }
+            catch (FormatException ex)
+            {
+                DisplayAlert(ex.Message, "Pressure Low", "Cancel");
+            }
+            endPressure = (float)Math.Log10(entryDouble );
+
+            try
+            {
+                Double.TryParse(entryVolume.Text , out entryDouble );
+            }
+            catch (FormatException ex)
+            {
+                DisplayAlert(ex.Message, "Chamber Volume", "Cancel");
+            }
+            chamberVolume = (float) entryDouble ;
+
+            try
+            {
+                Double.TryParse(entryDia.Text, out entryDouble );
+            }
+            catch (FormatException ex)
+            {
+                DisplayAlert(ex.Message, "Chamber Volume", "Cancel");
+            }
+            tubeDia = (float) entryDouble ;
+
+            try
+            {
+                Double.TryParse(entryLength.Text, out entryDouble );
+            }
+            catch (FormatException ex)
+            {
+                DisplayAlert(ex.Message, "Chamber Volume", "Cancel");
+            }
+            tubeLength =(float) entryDouble ;
+
+            try
+            {
+                int.TryParse(entryLength.Text, out entryInt );
+            }
+            catch (FormatException ex)
+            {
+                DisplayAlert(ex.Message, "Chamber Volume", "Cancel");
+            }
+            elbowNum = entryInt ;
 
             //高於startPressure的座標只留最接近那個
             while (VacCalc[1].Pressur >= startPressure)
@@ -205,9 +263,9 @@ namespace SkiaSharpTest
             //高於startPressure的座標Pressur=startPressure;Spee=線性內插
             //低於endPressure的座標Pressur=endPressure;Spee=線性內插                              
             int Idx = VacCalc.Count - 1;
-            VacCalc[0].Spee = midPoint(VacCalc[0].Pressur, VacCalc[0].Spee, VacCalc[1].Pressur, VacCalc[1].Spee, startPressure);
+            VacCalc[0].Spee = MidPoint(VacCalc[0].Pressur, VacCalc[0].Spee, VacCalc[1].Pressur, VacCalc[1].Spee, startPressure);
             VacCalc[0].Pressur = startPressure;
-            VacCalc[Idx].Spee = midPoint(VacCalc[Idx - 1].Pressur, VacCalc[Idx - 1].Spee, VacCalc[Idx].Pressur, VacCalc[Idx].Spee, endPressure);
+            VacCalc[Idx].Spee = MidPoint(VacCalc[Idx - 1].Pressur, VacCalc[Idx - 1].Spee, VacCalc[Idx].Pressur, VacCalc[Idx].Spee, endPressure);
             VacCalc[Idx].Pressur = endPressure;
 
             //計算內差的刻度
@@ -234,7 +292,7 @@ namespace SkiaSharpTest
                     if (insX > insY)
                     {
                         insX = VacCalc[Idx - 1].Pressur - incrementPress;
-                        insY = midPoint(VacCalc[Idx - 1].Pressur, VacCalc[Idx - 1].Spee, VacCalc[Idx].Pressur, VacCalc[Idx].Spee, insX);
+                        insY = MidPoint(VacCalc[Idx - 1].Pressur, VacCalc[Idx - 1].Spee, VacCalc[Idx].Pressur, VacCalc[Idx].Spee, insX);
                         VacCalc.Insert(Idx, new PSTs_node() { Pressur = insX, Spee = insY, Tim = 0, Secon = 0 });
                     }
                     else
@@ -248,7 +306,7 @@ namespace SkiaSharpTest
                         {
                             insY = VacCalc[Idx - 1].Spee + incrementSpeed;
                         }
-                        insX = midPoint(VacCalc[Idx - 1].Spee, VacCalc[Idx - 1].Pressur, VacCalc[Idx].Spee, VacCalc[Idx].Pressur, insY);
+                        insX = MidPoint(VacCalc[Idx - 1].Spee, VacCalc[Idx - 1].Pressur, VacCalc[Idx].Spee, VacCalc[Idx].Pressur, insY);
                         VacCalc.Insert(Idx, new PSTs_node() { Pressur = insX, Spee = insY, Tim = 0, Secon = 0 });
                     }
                 }
@@ -380,6 +438,16 @@ namespace SkiaSharpTest
                     newcanvas.DrawLine((VacCalc[i].Pressur - pressMin) * scaleX + paddingL, canvasHeight - paddingU - VacCalc[i].Spee * scaleY, (VacCalc[i + 1].Pressur - pressMin) * scaleX + paddingL, canvasHeight - paddingU - VacCalc[i + 1].Spee * scaleY, blueStrokePaint);
                 }                
             }
+
+
+
+
+
+
+
+
+
+
             //
             //開始TP curve
             //
@@ -486,7 +554,7 @@ namespace SkiaSharpTest
                 bitMapNum = 1;
         }
 
-        public float midPoint(float X0, float Y0, float X1, float Y1, float Mid)
+        public float MidPoint(float X0, float Y0, float X1, float Y1, float Mid)
         {
             return ((Y1 - Y0) / (X1 - X0) * (Mid - X0) + Y0);
         }

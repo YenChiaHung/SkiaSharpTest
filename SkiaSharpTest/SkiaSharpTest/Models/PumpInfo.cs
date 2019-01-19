@@ -21,5 +21,11 @@ namespace SkiaSharpTest.Models
         public float Spee { get; set; }
         public float Tim { get; set; }
         public float Secon { get; set; }
+        public float MoEntryLoss { get; set; }
+        public float MoBodyLoss { get; set; }
+        public float MoExitLoss { get; set; }
+        public float ViEntryLoss { get; set; }
+        public float ViBodyLoss { get; set; }
+        public float ViExitLoss { get; set; }
     }
 }
