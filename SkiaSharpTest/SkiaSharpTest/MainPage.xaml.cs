@@ -12,12 +12,18 @@ using System.Collections.ObjectModel;
 namespace SkiaSharpTest
 {
     public partial class MainPage : ContentPage
-    {
-        List<PressureSpeed> RowPressureSpeed = new List<PressureSpeed>();
-        List<PressureSpeed> RowPressureConductance = new List<PressureSpeed>();
+    {               
         List<PSTs_node> VacCalc = new List<PSTs_node>();
-        SKBitmap savePumpBitmap,saveConductanceBitmap, savePSBitmap,saveTPBitmap ;
-        CanvasInfo rowPumpCanvas=new CanvasInfo() ;
+        
+        SKBitmap savePSBitmap,saveTPBitmap ;
+
+        CanvasInfo rowPumpCanvas = new CanvasInfo();
+        List<PressureSpeed> RowPumpingSpeed = new List<PressureSpeed>();
+        List<PressureSpeed> RowDeliverySpeed = new List<PressureSpeed>();
+
+        CanvasInfo rowTubeCanvas = new CanvasInfo();
+        List<PressureSpeed> RowPressureConductance = new List<PressureSpeed>();
+
         int bitMapNum=1;
 
         float startPressure, endPressure, chamberVolume, tubeDia, tubeLength;
@@ -107,12 +113,13 @@ namespace SkiaSharpTest
             SKSurface surface = e.Surface;
             SKCanvas canvas = surface.Canvas;
 
-            rowPumpCanvas.CanvasWidth= canvasWidth = (float)e.Info.Width ;
-            rowPumpCanvas.CanvasHeight= canvasHeight = (float)e.Info.Height;
+            rowPumpCanvas.CanvasWidth= rowTubeCanvas.CanvasWidth = (float)e.Info.Width ;
+            
+            rowPumpCanvas.CanvasHeight= rowTubeCanvas.CanvasHeight  = (float)e.Info.Height;
 
-            if (savePumpBitmap == null)
+            if (rowPumpCanvas.SaveBitMap == null)
             {
-                savePumpBitmap = new SKBitmap(info.Width, info.Height);
+                rowPumpCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
             }
             if (savePSBitmap == null)
             {
@@ -122,9 +129,9 @@ namespace SkiaSharpTest
             {
                 saveTPBitmap = new SKBitmap(info.Width, info.Height);
             }
-            if (saveConductanceBitmap == null)
+            if ( rowTubeCanvas.SaveBitMap == null)
             {
-                saveConductanceBitmap = new SKBitmap(info.Width, info.Height);
+                rowTubeCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
             }
             canvas.Clear(SKColors.White);
 
@@ -138,11 +145,11 @@ namespace SkiaSharpTest
             }
             if (bitMapNum == 3)
             {
-                canvas.DrawBitmap(savePumpBitmap, 0, 0);
+                canvas.DrawBitmap(rowPumpCanvas.SaveBitMap, 0, 0);
             }
             if (bitMapNum == 4)
             {
-                canvas.DrawBitmap(saveConductanceBitmap , 0, 0);
+                canvas.DrawBitmap(rowTubeCanvas.SaveBitMap, 0, 0);
             }
 
         }
@@ -170,152 +177,170 @@ namespace SkiaSharpTest
             var TempList = SelectedPumpInfo.PSList as List<PressureSpeed> ;
             var ListViewID = sender as ViewCell ;
 
-            RowPressureSpeed.Clear();
+            RowPumpingSpeed.Clear();
+            RowDeliverySpeed.Clear();
             RowPressureConductance.Clear();
             VacCalc.Clear();
-            for (int i= 0; i < TempList.Count; i++)
+            for (int i= 0; i< TempList.Count; i++)
             {
-                RowPressureSpeed.Add(new PressureSpeed () { ValueX  = TempList[i].ValueX, ValueY = TempList[i].ValueY });
+                RowPumpingSpeed.Add(new PressureSpeed () { ValueX  = TempList[i].ValueX, ValueY = TempList[i].ValueY });
+                RowDeliverySpeed.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
                 RowPressureConductance.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
                 VacCalc.Add(new PSTs_node() { Pressur = (float)Math.Log10(TempList[i].ValueX), Spee = TempList[i].ValueY, Tim = 0, Secon = 0 });                 
             }
-            savePumpBitmap = DrawXlogYnature(savePumpBitmap, RowPressureSpeed );
+            rowPumpCanvas = InitXlogYnature(rowPumpCanvas, RowPumpingSpeed);
+            rowPumpCanvas = DrawXlogYnature(rowPumpCanvas, RowPumpingSpeed);
 
             float alpha;
             float viscousBody;
             float molecularBody;
-            for (int i = 0; i < RowPressureConductance.Count; i++)
+            for(int i= 0; i< RowPressureConductance.Count; i++)
             {
                 alpha = 4 * tubeDia / 3 / tubeLength;
                 viscousBody = 0.0327f * (float)Math.Pow(tubeDia, 4) * RowPressureConductance[i].ValueX / (tubeLength * 0.0001708f);
                 molecularBody = 11.43f * alpha * (float)(Math.Sqrt(293.15 / 28.966f) * Math.Pow(tubeDia / 2f, 2));
                 RowPressureConductance[i].ValueY = viscousBody + molecularBody;
             }
-            saveConductanceBitmap = DrawXlogYnature(saveConductanceBitmap, RowPressureConductance);
+            rowTubeCanvas = InitXlogYnature(rowTubeCanvas, RowPressureConductance);
+            rowTubeCanvas = DrawXlogYnature(rowTubeCanvas, RowPressureConductance);
+
+            for(int i= 0; i< RowPumpingSpeed.Count; i++)
+            {
+                RowDeliverySpeed[i].ValueY = RowPumpingSpeed[i].ValueY * RowPressureConductance[i].ValueY / (RowPumpingSpeed[i].ValueY + RowPressureConductance[i].ValueY);
+            }
+            rowPumpCanvas = DrawXlogYnature(rowPumpCanvas, RowDeliverySpeed );
 
             canvasViewPS.InvalidateSurface();
         }
 
-        public SKBitmap DrawXlogYnature(SKBitmap bitMap, List<PressureSpeed> curveXY)
+        public CanvasInfo InitXlogYnature(CanvasInfo cI, List<PressureSpeed> curveXY)
         {
             //刻度起始值結束值,數據是指數,最小值退位為整數,最大值進位為整數
-            rowPumpCanvas.XMax = (float) Math.Log10( curveXY[0].ValueX);
-            rowPumpCanvas.XMin = rowPumpCanvas.XMax  ;
-            for (int i = 0; i < curveXY.Count; i++ )
-            {
-                curveXY[i].ValueX=(float) Math.Log10(curveXY[i].ValueX );
-                if (rowPumpCanvas.XMax  < curveXY[i].ValueX)
-                    rowPumpCanvas.XMax = curveXY[i].ValueX;
-                if (rowPumpCanvas.XMin  > curveXY[i].ValueX)
-                    rowPumpCanvas.XMin  = curveXY[i].ValueX;
-            }
-            rowPumpCanvas.XMax = (float)Math.Ceiling(rowPumpCanvas.XMax);
-            rowPumpCanvas.XMin  = (float)Math.Floor(rowPumpCanvas.XMin);
-
-            rowPumpCanvas.YMax = curveXY[0].ValueY;
-            rowPumpCanvas.YMin = rowPumpCanvas.YMax ;
+            cI.XMax = (float)Math.Log10(curveXY[0].ValueX);           
+            cI.XMin = cI.XMax;
             for (int i = 0; i < curveXY.Count; i++)
             {
-                if (rowPumpCanvas.YMax < curveXY[i].ValueY)
-                    rowPumpCanvas.YMax = curveXY[i].ValueY;
-                if (rowPumpCanvas.YMin  > curveXY[i].ValueY)
-                    rowPumpCanvas.YMin  = curveXY[i].ValueY;
+                //curveXY[i].ValueX = (float)Math.Log10(curveXY[i].ValueX);
+                if (cI.XMax < (float)Math.Log10(curveXY[i].ValueX))
+                    cI.XMax = (float)Math.Log10(curveXY[i].ValueX);
+                if (cI.XMin > (float)Math.Log10(curveXY[i].ValueX))
+                    cI.XMin = (float)Math.Log10(curveXY[i].ValueX);
             }
-            rowPumpCanvas.YMultiplier = 1f;
-            //刻度結束值,將最大值拆成兩數相乘;尾數*乘數;尾數進位為整數
-            while (rowPumpCanvas.YMax >= 10f ^ rowPumpCanvas.YMax < 1f)
+            cI.XMax = (float)Math.Ceiling(cI.XMax);
+            cI.XMin = (float)Math.Floor(cI.XMin);
+
+            cI.YMax = curveXY[0].ValueY;
+            cI.YMin = cI.YMax;
+            for (int i = 0; i < curveXY.Count; i++)
             {
-                if (rowPumpCanvas.YMax >= 10)
+                if (cI.YMax < curveXY[i].ValueY)
+                    cI.YMax = curveXY[i].ValueY;
+                if (cI.YMin > curveXY[i].ValueY)
+                    cI.YMin = curveXY[i].ValueY;
+            }
+            cI.YMultiplier = 1f;
+            //刻度結束值,將最大值拆成兩數相乘;尾數*乘數;尾數進位為整數
+            while (cI.YMax >= 10f ^ cI.YMax < 1f)
+            {
+                if (cI.YMax >= 10)
                 {
-                    rowPumpCanvas.YMax = rowPumpCanvas.YMax / 10;
-                    rowPumpCanvas.YMultiplier = rowPumpCanvas.YMultiplier * 10;
+                    cI.YMax = cI.YMax / 10;
+                    cI.YMultiplier = cI.YMultiplier * 10;
                 }
-                if (rowPumpCanvas.YMax < 1)
+                if (cI.YMax < 1)
                 {
-                    rowPumpCanvas.YMax = rowPumpCanvas.YMax * 10;
-                    rowPumpCanvas.YMultiplier = rowPumpCanvas.YMultiplier / 10;
+                    cI.YMax = cI.YMax * 10;
+                    cI.YMultiplier = cI.YMultiplier / 10;
                 }
             }
-            rowPumpCanvas.YMax = (float)Math.Ceiling(rowPumpCanvas.YMax) * rowPumpCanvas.YMultiplier;
+            cI.YMax = (float)Math.Ceiling(cI.YMax) * cI.YMultiplier;
 
             //開始PS curve
             //
             //計算左邊的留多少文字空間
-            float tempFloat = rowPumpCanvas.YMax;
+            float tempFloat = cI.YMax;
             string tempString = tempFloat.ToString();
 
-            rowPumpCanvas.PaddingL = textPaint.MeasureText(tempString) + textPaint.TextSize / 2f;
+            cI.PaddingL = textPaint.MeasureText(tempString) + textPaint.TextSize / 2f;
 
             //計算上標題列高
-            rowPumpCanvas.PaddingU = textPaint.TextSize * 2f;
+            cI.PaddingU = textPaint.TextSize * 2f;
 
             //計算右邊的留多少文字空間             
-            tempFloat = (float)Math.Pow(10, rowPumpCanvas.XMax);
+            tempFloat = (float)Math.Pow(10, cI.XMax);
             tempString = tempFloat.ToString();
-            rowPumpCanvas.PaddingR  = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 4f;
+            cI.PaddingR = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 4f;
 
             //計算下刻度列高
-            rowPumpCanvas.PaddingD  = textPaint.TextSize * 1.5f;
+            cI.PaddingD = textPaint.TextSize * 1.5f;
 
-            rowPumpCanvas.XScale = (rowPumpCanvas.CanvasWidth - rowPumpCanvas.PaddingL - rowPumpCanvas.PaddingR ) / (rowPumpCanvas.XMax - rowPumpCanvas.XMin );
-            rowPumpCanvas.YScale = (rowPumpCanvas.CanvasHeight  - rowPumpCanvas.PaddingU - rowPumpCanvas.PaddingD ) / rowPumpCanvas.YMax;
-
-            //用一次性畫布作圖存成saveBitmap
-            using (SKCanvas newcanvas = new SKCanvas(bitMap))
+            cI.XScale = (cI.CanvasWidth - cI.PaddingL - cI.PaddingR) / (cI.XMax - cI.XMin);
+            cI.YScale = (cI.CanvasHeight - cI.PaddingU - cI.PaddingD) / cI.YMax;
+            using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap ))
             {
                 newcanvas.Clear(SKColors.White);
                 //畫垂直格線
-                for (float i = 0; i < rowPumpCanvas.XMax - rowPumpCanvas.XMin ; i++)
+                for (float i = 0; i < cI.XMax - cI.XMin; i++)
                 {
                     SKColor colorSave = blackStrokePaint.Color;
                     blackStrokePaint.Color = SKColors.Red;
                     for (float j = 1; j < 10; j++)
                     {
                         //畫小刻度線
-                        newcanvas.DrawLine((i + (float)Math.Log10(j)) * rowPumpCanvas.XScale + rowPumpCanvas.PaddingL , rowPumpCanvas.PaddingU , (i + (float)Math.Log10(j)) * rowPumpCanvas.XScale + rowPumpCanvas.PaddingL , rowPumpCanvas.CanvasHeight - rowPumpCanvas.PaddingD , redStrokePaint);
+                        newcanvas.DrawLine((i + (float)Math.Log10(j)) * cI.XScale + cI.PaddingL, cI.PaddingU, (i + (float)Math.Log10(j)) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, redStrokePaint);
                     }
                     blackStrokePaint.Color = colorSave;
 
-                    newcanvas.DrawLine(i * rowPumpCanvas.XScale + rowPumpCanvas.PaddingL , rowPumpCanvas.PaddingU , i * rowPumpCanvas.XScale + rowPumpCanvas.PaddingL , rowPumpCanvas.CanvasHeight  - rowPumpCanvas.PaddingD , blackStrokePaint);
+                    newcanvas.DrawLine(i * cI.XScale + cI.PaddingL, cI.PaddingU, i * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
 
                     //刻度值轉文字
-                    tempFloat = (float)Math.Pow(10, i + rowPumpCanvas.XMin );
+                    tempFloat = (float)Math.Pow(10, i + cI.XMin);
                     tempString = tempFloat.ToString();
                     float textWidth = textPaint.MeasureText(tempString);
-                    newcanvas.DrawText(tempString, i * rowPumpCanvas.XScale + rowPumpCanvas.PaddingL  - textWidth / 2,rowPumpCanvas.CanvasHeight -rowPumpCanvas.PaddingD  + textPaint.TextSize * 1.25f, textPaint);
+                    newcanvas.DrawText(tempString, i * cI.XScale + cI.PaddingL - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize * 1.25f, textPaint);
                 }
-                newcanvas.DrawLine((rowPumpCanvas.XMax - rowPumpCanvas.XMin ) * rowPumpCanvas.XScale + rowPumpCanvas.PaddingL ,rowPumpCanvas.PaddingU , (rowPumpCanvas.XMax - rowPumpCanvas.XMin ) * rowPumpCanvas.XScale  + rowPumpCanvas.PaddingL , rowPumpCanvas.CanvasHeight  - rowPumpCanvas.PaddingD , blackStrokePaint);
+                newcanvas.DrawLine((cI.XMax - cI.XMin) * cI.XScale + cI.PaddingL, cI.PaddingU, (cI.XMax - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
 
                 //畫水平格線
-                for (float i = 0; i < rowPumpCanvas.YMax; i = i + rowPumpCanvas.YMultiplier)
+                for (float i = 0; i < cI.YMax; i = i + cI.YMultiplier)
                 {
                     SKColor colorSave = blackStrokePaint.Color;
                     blackStrokePaint.Color = SKColors.Red;
-                    for (float j = rowPumpCanvas.YMultiplier / 10; j < rowPumpCanvas.YMultiplier; j = j + rowPumpCanvas.YMultiplier / 10)
+                    for (float j = cI.YMultiplier / 10; j < cI.YMultiplier; j = j + cI.YMultiplier / 10)
                     {
-                        newcanvas.DrawLine(rowPumpCanvas.PaddingL , rowPumpCanvas.CanvasHeight - rowPumpCanvas.PaddingD  - (i + j) * rowPumpCanvas.YScale , rowPumpCanvas.CanvasWidth - rowPumpCanvas.PaddingR ,rowPumpCanvas.CanvasHeight - rowPumpCanvas.PaddingD  - (i + j) * rowPumpCanvas.YScale , redStrokePaint);
+                        newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - (i + j) * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - (i + j) * cI.YScale, redStrokePaint);
                     }
                     blackStrokePaint.Color = colorSave;
 
-                    newcanvas.DrawLine(rowPumpCanvas.PaddingL ,rowPumpCanvas.CanvasHeight -rowPumpCanvas.PaddingD  - i * rowPumpCanvas.YScale , rowPumpCanvas.CanvasWidth  - rowPumpCanvas.PaddingR , rowPumpCanvas.CanvasHeight  - rowPumpCanvas.PaddingD  - i * rowPumpCanvas.YScale , blackStrokePaint);
+                    newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, blackStrokePaint);
 
                     tempString = i.ToString();
                     float textWidth = textPaint.MeasureText(tempString);
-                    newcanvas.DrawText(tempString, rowPumpCanvas.PaddingL  - textWidth - textPaint.TextSize / 4, rowPumpCanvas.CanvasHeight  -rowPumpCanvas.PaddingD  - i * rowPumpCanvas.YScale , textPaint);
+                    newcanvas.DrawText(tempString, cI.PaddingL - textWidth - textPaint.TextSize / 4, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, textPaint);
                 }
-                newcanvas.DrawLine(rowPumpCanvas.PaddingL , rowPumpCanvas.CanvasHeight  - rowPumpCanvas.PaddingD  - rowPumpCanvas.YMax * rowPumpCanvas.YScale ,rowPumpCanvas.CanvasWidth - rowPumpCanvas.PaddingR , rowPumpCanvas.CanvasHeight -rowPumpCanvas.PaddingD - rowPumpCanvas.YMax * rowPumpCanvas.YScale , blackStrokePaint);
+                newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - cI.YMax * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - cI.YMax * cI.YScale, blackStrokePaint);
 
                 //畫標題欄
                 tempString = "L/sec VS Torr";
-                newcanvas.DrawText(tempString, (rowPumpCanvas.CanvasWidth  - textPaint3X2.MeasureText(tempString)) / 2, textPaint.TextSize * 1.75f, textPaint3X2);
+                newcanvas.DrawText(tempString, (cI.CanvasWidth - textPaint3X2.MeasureText(tempString)) / 2, textPaint.TextSize * 1.75f, textPaint3X2);
 
+            }
+            return cI ;
+        }
+
+
+        public CanvasInfo DrawXlogYnature(CanvasInfo cI, List<PressureSpeed> curveXY)
+        {           
+            //用一次性畫布作圖存成saveBitmap
+            using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap ))
+            {
                 //畫曲線
                 for (int i = 0; i < curveXY .Count - 1; i++)
                 {
-                    newcanvas.DrawLine((curveXY[i].ValueX - rowPumpCanvas.XMin ) * rowPumpCanvas.XScale + rowPumpCanvas.PaddingL ,rowPumpCanvas.CanvasHeight - rowPumpCanvas.PaddingU  - curveXY[i].ValueY  * rowPumpCanvas.YScale , (curveXY[i + 1].ValueX - rowPumpCanvas.XMin ) * rowPumpCanvas.XScale  + rowPumpCanvas.PaddingL , rowPumpCanvas.CanvasHeight - rowPumpCanvas.PaddingU  - curveXY [i + 1].ValueY * rowPumpCanvas.YScale , blueStrokePaint);
+                    newcanvas.DrawLine( ( (float)Math.Log10(curveXY[i].ValueX) - cI.XMin ) * cI.XScale + cI.PaddingL ,cI.CanvasHeight - cI.PaddingU - curveXY[i].ValueY * cI.YScale , ( (float)Math.Log10(curveXY[i + 1].ValueX ) - cI.XMin ) * cI.XScale  + cI.PaddingL , cI.CanvasHeight - cI.PaddingU - curveXY [i + 1].ValueY * cI.YScale , blueStrokePaint);
                 }
             }
-            return bitMap;
+            return cI;
         }
 
         SKPaint blueStrokePaint = new SKPaint
