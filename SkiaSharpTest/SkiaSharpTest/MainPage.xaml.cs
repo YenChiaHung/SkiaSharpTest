@@ -13,11 +13,7 @@ using SkiaSharpTest.Draw;
 namespace SkiaSharpTest
 {
     public partial class MainPage : ContentPage
-    {               
-        List<PSTs_node> VacCalc = new List<PSTs_node>();
-        
-        SKBitmap savePSBitmap,saveTPBitmap ;
-
+    {                                      
         CanvasInfo rowPumpCanvas = new CanvasInfo();
         List<PressureSpeed> RowPumpingSpeed = new List<PressureSpeed>();
         List<PressureSpeed> RowDeliverySpeed = new List<PressureSpeed>();
@@ -25,24 +21,23 @@ namespace SkiaSharpTest
         CanvasInfo rowTubeCanvas = new CanvasInfo();
         List<PressureSpeed> RowPressureConductance = new List<PressureSpeed>();
 
+        CanvasInfo finePumpCanvas = new CanvasInfo();
+        List<PressureSpeed> VacCalc = new List<PressureSpeed>();
+
         int bitMapNum=1;
 
-        float startPressure, endPressure, chamberVolume, tubeDia, tubeLength;
+        float startPressure=760, endPressure=0.05f, chamberVolume, tubeDia, tubeLength;
         int elbowNum;
         int   incrementNum = 100;
         float incrementPress, incrementSpeed;              
 
         ObservableCollection<PumpInfo> PumpListData;
-        DrawGrid drawLogLog = new DrawGrid();
+        DrawGrid drawGrid = new DrawGrid();
+
         public MainPage()
         {                    
             InitializeComponent();
-
-            drawLogLog.Init();
-            VacCalc.Clear();
-            VacCalc.Add(new PSTs_node() { Pressur = (float)Math.Log10(1000f), Spee = 0.01f, Tim = 0, Secon = 0 });
-            VacCalc.Add(new PSTs_node() { Pressur = (float)Math.Log10(0.01f), Spee = 1000f, Tim = 0, Secon = 0 });
-
+            drawGrid.Init();
             PumpListData = new ObservableCollection<PumpInfo>
 {
                 new PumpInfo ()
@@ -100,35 +95,33 @@ namespace SkiaSharpTest
             SKSurface surface = e.Surface;
             SKCanvas canvas = surface.Canvas;
 
-            rowPumpCanvas.CanvasWidth= rowTubeCanvas.CanvasWidth = (float)e.Info.Width ;
+            rowPumpCanvas.CanvasWidth = rowTubeCanvas.CanvasWidth = finePumpCanvas.CanvasWidth = (float)e.Info.Width ;
             
-            rowPumpCanvas.CanvasHeight= rowTubeCanvas.CanvasHeight  = (float)e.Info.Height;
+            rowPumpCanvas.CanvasHeight = rowTubeCanvas.CanvasHeight = finePumpCanvas.CanvasHeight = (float)e.Info.Height;
 
             if (rowPumpCanvas.SaveBitMap == null)
             {
                 rowPumpCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
-            }
-            if (savePSBitmap == null)
-            {
-                savePSBitmap = new SKBitmap(info.Width, info.Height);
-            }
-            if (saveTPBitmap == null)
-            {
-                saveTPBitmap = new SKBitmap(info.Width, info.Height);
-            }
-            if ( rowTubeCanvas.SaveBitMap == null)
+            }                       
+            if (rowTubeCanvas.SaveBitMap == null)
             {
                 rowTubeCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
             }
+            if (finePumpCanvas.SaveBitMap == null)
+            {
+                finePumpCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
+            }
+
+
             canvas.Clear(SKColors.White);
 
             if (bitMapNum == 1)
             {
-                canvas.DrawBitmap(saveTPBitmap, 0, 0);
+                canvas.DrawBitmap(rowPumpCanvas.SaveBitMap, 0, 0);
             }
             if (bitMapNum == 2)
             {
-                canvas.DrawBitmap(savePSBitmap, 0, 0);
+                canvas.DrawBitmap(rowPumpCanvas.SaveBitMap, 0, 0);
             }
             if (bitMapNum == 3)
             {
@@ -138,7 +131,10 @@ namespace SkiaSharpTest
             {
                 canvas.DrawBitmap(rowTubeCanvas.SaveBitMap, 0, 0);
             }
-
+            if (bitMapNum == 5)
+            {
+                canvas.DrawBitmap(finePumpCanvas.SaveBitMap, 0, 0);
+            }
         }
 
         private void PumpListView_ItemTapped(object sender, ItemTappedEventArgs e)
@@ -151,16 +147,21 @@ namespace SkiaSharpTest
             RowDeliverySpeed.Clear();
             RowPressureConductance.Clear();
             VacCalc.Clear();
+            //page3
+            //
+            //載入Puming curve
             for (int i= 0; i< TempList.Count; i++)
             {
-                RowPumpingSpeed.Add(new PressureSpeed () { ValueX  = TempList[i].ValueX, ValueY = TempList[i].ValueY });
-                RowDeliverySpeed.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
+                RowPumpingSpeed.Add      (new PressureSpeed () { ValueX = TempList[i].ValueX, ValueY = TempList[i].ValueY });
+                RowDeliverySpeed.Add      (new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
                 RowPressureConductance.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
-                VacCalc.Add(new PSTs_node() { Pressur = (float)Math.Log10(TempList[i].ValueX), Spee = TempList[i].ValueY, Tim = 0, Secon = 0 });                 
+                VacCalc.Add               (new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = TempList[i].ValueY });                 
             }
-            rowPumpCanvas = drawLogLog.InitXlogYnature(rowPumpCanvas, RowPumpingSpeed);
-            rowPumpCanvas = drawLogLog.DrawXlogYnature(rowPumpCanvas, RowPumpingSpeed);
-
+            rowPumpCanvas = drawGrid.InitXlogYnature(rowPumpCanvas, RowPumpingSpeed);
+            rowPumpCanvas = drawGrid.DrawXlogYnature(rowPumpCanvas, RowPumpingSpeed);
+            //page4
+            //
+            //計算各壓力流導
             float alpha;
             float viscousBody;
             float molecularBody;
@@ -171,49 +172,51 @@ namespace SkiaSharpTest
                 molecularBody = 11.43f * alpha * (float)(Math.Sqrt(293.15 / 28.966f) * Math.Pow(tubeDia / 2f, 2));
                 RowPressureConductance[i].ValueY = viscousBody + molecularBody;
             }
-            rowTubeCanvas = drawLogLog.InitXlogYlog(rowTubeCanvas, RowPressureConductance);
-            rowTubeCanvas = drawLogLog.DrawXlogYlog(rowTubeCanvas, RowPressureConductance);
-
+            rowTubeCanvas = drawGrid.InitXlogYlog(rowTubeCanvas, RowPressureConductance);
+            rowTubeCanvas = drawGrid.DrawXlogYlog(rowTubeCanvas, RowPressureConductance);
+            //refine page3
+            //
+            //calculate delivery speed
             for(int i= 0; i< RowPumpingSpeed.Count; i++)
             {
                 RowDeliverySpeed[i].ValueY = RowPumpingSpeed[i].ValueY * RowPressureConductance[i].ValueY / (RowPumpingSpeed[i].ValueY + RowPressureConductance[i].ValueY);
             }
-            rowPumpCanvas = drawLogLog.DrawXlogYnature (rowPumpCanvas, RowDeliverySpeed );
+            rowPumpCanvas = drawGrid.DrawXlogYnature (rowPumpCanvas, RowDeliverySpeed );
 
-            canvasViewPS.InvalidateSurface();
-        }
-
-        public void DrawPS_ButtenClicked(object sender, EventArgs e)
-        {           
+            //page 5
+            //
             //高於startPressure的座標只留最接近那個
-            while (VacCalc[1].Pressur >= startPressure)
+            while (VacCalc[1].ValueX  >= startPressure)
             {
                 VacCalc.RemoveAt(0);
-            }
-
+            } 
             //低於endPressure的座標只留最接近那個
-            while (VacCalc[VacCalc.Count - 2].Pressur <= endPressure)
+            while (VacCalc[VacCalc.Count - 2].ValueX  <= endPressure)
             {
                 VacCalc.RemoveAt(VacCalc.Count - 1);
             }
-
             //高於startPressure的座標Pressur=startPressure;Spee=線性內插
             //低於endPressure的座標Pressur=endPressure;Spee=線性內插                              
             int Idx = VacCalc.Count - 1;
-            VacCalc[0].Spee = MidPoint(VacCalc[0].Pressur, VacCalc[0].Spee, VacCalc[1].Pressur, VacCalc[1].Spee, startPressure);
-            VacCalc[0].Pressur = startPressure;
-            VacCalc[Idx].Spee = MidPoint(VacCalc[Idx - 1].Pressur, VacCalc[Idx - 1].Spee, VacCalc[Idx].Pressur, VacCalc[Idx].Spee, endPressure);
-            VacCalc[Idx].Pressur = endPressure;
+            VacCalc[0].ValueY = MidPoint(VacCalc[0].ValueX , VacCalc[0].ValueY , VacCalc[1].ValueX , VacCalc[1].ValueY , startPressure);
+            VacCalc[0].ValueX  = startPressure;
+            VacCalc[Idx].ValueY  = MidPoint(VacCalc[Idx - 1].ValueX , VacCalc[Idx - 1].ValueY , VacCalc[Idx].ValueX , VacCalc[Idx].ValueY , endPressure);
+            VacCalc[Idx].ValueX  = endPressure;
 
+            for (int i = 0; i < VacCalc.Count; i++)
+            {
+                VacCalc[i].ValueX = (float)Math.Log10(VacCalc[i].ValueX);
+            }
             //計算內差的刻度
-            incrementPress = (VacCalc[0].Pressur - VacCalc[Idx].Pressur) / incrementNum;
-            float speedMax = VacCalc[0].Spee;
+            incrementPress = (VacCalc[0].ValueX  - VacCalc[Idx].ValueX ) / incrementNum;
+            float speedMax = VacCalc[0].ValueY ;
             for (int i = 1; i < VacCalc.Count; i++)
             {
-                if (speedMax < VacCalc[i].Spee)
-                    speedMax = VacCalc[i].Spee;                
+                if (speedMax < VacCalc[i].ValueY )
+                    speedMax = VacCalc[i].ValueY ;
             }
             incrementSpeed = speedMax / incrementNum;
+
 
             //距離太遠的兩點插入點
             float insX, insY;
@@ -221,48 +224,49 @@ namespace SkiaSharpTest
             while (Idx < VacCalc.Count)
             {
                 //大於1代表兩點距離太寬;
-                insX = (VacCalc[Idx - 1].Pressur - VacCalc[Idx].Pressur) / incrementPress;
-                insY = Math.Abs(VacCalc[Idx - 1].Spee - VacCalc[Idx].Spee) / incrementSpeed;
+                insX = (VacCalc[Idx - 1].ValueX  - VacCalc[Idx].ValueX ) / incrementPress;
+                insY = Math.Abs(VacCalc[Idx - 1].ValueY - VacCalc[Idx].ValueY ) / incrementSpeed;
                 if (insX > 1f ^ insY > 1f)
                 {
                     //兩點之間是X比較寬還是Y比較寬
                     if (insX > insY)
                     {
-                        insX = VacCalc[Idx - 1].Pressur - incrementPress;
-                        insY = MidPoint(VacCalc[Idx - 1].Pressur, VacCalc[Idx - 1].Spee, VacCalc[Idx].Pressur, VacCalc[Idx].Spee, insX);
-                        VacCalc.Insert(Idx, new PSTs_node() { Pressur = insX, Spee = insY, Tim = 0, Secon = 0 });
+                        insX = VacCalc[Idx - 1].ValueX  - incrementPress;
+                        insY = MidPoint(VacCalc[Idx - 1].ValueX , VacCalc[Idx - 1].ValueY, VacCalc[Idx].ValueX, VacCalc[Idx].ValueY, insX);
+                        VacCalc.Insert(Idx, new PressureSpeed() { ValueX = insX, ValueY = insY });
                     }
                     else
                     {
                         //insY已經是絕對值,要重新判斷正負
-                        if (VacCalc[Idx - 1].Spee > VacCalc[Idx].Spee)
+                        if (VacCalc[Idx - 1].ValueY > VacCalc[Idx].ValueY )
                         {
-                            insY = VacCalc[Idx - 1].Spee - incrementSpeed;
+                            insY = VacCalc[Idx - 1].ValueY  - incrementSpeed;
                         }
                         else
                         {
-                            insY = VacCalc[Idx - 1].Spee + incrementSpeed;
+                            insY = VacCalc[Idx - 1].ValueY  + incrementSpeed;
                         }
-                        insX = MidPoint(VacCalc[Idx - 1].Spee, VacCalc[Idx - 1].Pressur, VacCalc[Idx].Spee, VacCalc[Idx].Pressur, insY);
-                        VacCalc.Insert(Idx, new PSTs_node() { Pressur = insX, Spee = insY, Tim = 0, Secon = 0 });
+                        insX = MidPoint(VacCalc[Idx - 1].ValueY , VacCalc[Idx - 1].ValueX , VacCalc[Idx].ValueY , VacCalc[Idx].ValueX, insY);
+                        VacCalc.Insert(Idx, new PressureSpeed() { ValueX = insX,ValueY  = insY });
                     }
                 }
                 Idx++;
             }
 
-            //計算區間時間和累計時間
-            VacCalc[0].Secon = 0;
-            VacCalc[0].Tim = 0;
-            for (int i = 1; i < VacCalc.Count; i++)
+            for (int i = 0; i < VacCalc.Count; i++)
             {
-                VacCalc[i].Secon = chamberVolume * 2 / (VacCalc[i - 1].Spee + VacCalc[i].Spee)*(float) Math.Log(10) *(VacCalc[i-1].Pressur -VacCalc[i].Pressur );
-                VacCalc[i].Tim = VacCalc[i - 1].Tim + VacCalc[i].Secon;
-            }       
+                VacCalc[i].ValueX = (float)Math.Pow (10,VacCalc[i].ValueX);
+            }
+
+            finePumpCanvas = drawGrid.InitXlogYnature(finePumpCanvas, VacCalc);
+            finePumpCanvas = drawGrid.DrawXlogYnature(finePumpCanvas, VacCalc);
+
+            canvasViewPS.InvalidateSurface();
         }
 
         public void NextPage_ButtenClicked(object sender, EventArgs e)
         {
-            double entryDouble = 0;
+            float entryFloat = 0;
             int entryInt = 0;
 
             //chamber info entry
@@ -270,33 +274,33 @@ namespace SkiaSharpTest
             {
                 try
                 {
-                    Double.TryParse(entryPHigh.Text, out entryDouble);
+                    float.TryParse(entryPHigh.Text, out entryFloat);
                 }
                 catch (FormatException ex)
                 {
                     DisplayAlert(ex.Message, "Pressure High", "Cancel");
                 }
-                startPressure = (float)Math.Log10(entryDouble);
+                startPressure = entryFloat;
 
                 try
                 {
-                    Double.TryParse(entryPLow.Text, out entryDouble);
+                    float.TryParse(entryPLow.Text, out entryFloat);
                 }
                 catch (FormatException ex)
                 {
                     DisplayAlert(ex.Message, "Pressure Low", "Cancel");
                 }
-                endPressure = (float)Math.Log10(entryDouble);
+                endPressure = entryFloat;
 
                 try
                 {
-                    Double.TryParse(entryVolume.Text, out entryDouble);
+                   float.TryParse(entryVolume.Text, out entryFloat);
                 }
                 catch (FormatException ex)
                 {
                     DisplayAlert(ex.Message, "Chamber Volume", "Cancel");
                 }
-                chamberVolume = (float)entryDouble;
+                chamberVolume = entryFloat;
           
                 ChamberInfoGrid1.IsVisible  = false;
                 TubeInfoGrid1.IsVisible = true;
@@ -308,23 +312,23 @@ namespace SkiaSharpTest
             {
                 try
                 {
-                    Double.TryParse(entryDia.Text, out entryDouble);
+                    float.TryParse(entryDia.Text, out entryFloat);
                 }
                 catch (FormatException ex)
                 {
                     DisplayAlert(ex.Message, "Chamber Volume", "Cancel");
                 }
-                tubeDia = (float)entryDouble;
+                tubeDia = entryFloat;
 
                 try
                 {
-                    Double.TryParse(entryLength.Text, out entryDouble);
+                    float.TryParse(entryLength.Text, out entryFloat);
                 }
                 catch (FormatException ex)
                 {
                     DisplayAlert(ex.Message, "Chamber Volume", "Cancel");
                 }
-                tubeLength = (float)entryDouble;
+                tubeLength = entryFloat;
 
                 try
                 {
@@ -349,12 +353,13 @@ namespace SkiaSharpTest
                 PumpListView.IsVisible = false;
             }
             if (bitMapNum == 4)
+            {               
+                ChamberInfoGrid1.IsVisible = true;
+                TubeInfoGrid1.IsVisible = false;
+                PumpListView.IsVisible = false;
+            }
+            if (bitMapNum == 5)
             {
-               
-
-
-
-
                 ChamberInfoGrid1.IsVisible = true;
                 TubeInfoGrid1.IsVisible = false;
                 PumpListView.IsVisible = false;
@@ -362,7 +367,7 @@ namespace SkiaSharpTest
 
             canvasViewPS.InvalidateSurface();
             bitMapNum++;
-            if (bitMapNum > 4 ^ bitMapNum < 1)
+            if (bitMapNum > 5 ^ bitMapNum < 1)
                 bitMapNum = 1;
         }
 
