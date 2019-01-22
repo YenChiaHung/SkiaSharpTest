@@ -22,7 +22,7 @@ namespace SkiaSharpTest.Draw
             }
             textPaint3X2.TextSize = textPaint.TextSize * 1.5f;
         }
-        public CanvasInfo InitXlogYnature(CanvasInfo cI, List<PressureSpeed> curveXY)
+        public CanvasInfo FormXlogYnature(CanvasInfo cI, List<PressureSpeed> curveXY)
         {
             //刻度起始值結束值,數據是指數,最小值退位為整數,最大值進位為整數
             cI.XMax = (float)Math.Log10(curveXY[0].ValueX);
@@ -138,7 +138,7 @@ namespace SkiaSharpTest.Draw
         }
 
 
-        public CanvasInfo InitXlogYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
+        public CanvasInfo FormXlogYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
         {
             cI.XMin = cI.XMax = (float)Math.Log10(curveXY[0].ValueX);
             cI.YMin = cI.YMax = (float)Math.Log10(curveXY[0].ValueY);
@@ -233,7 +233,7 @@ namespace SkiaSharpTest.Draw
         }
 
 
-        public CanvasInfo InitXnatureYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
+        public CanvasInfo FormXnatureYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
         {            
             cI.XMax = cI.XMin = curveXY[0].ValueX;;
             for (int i = 0; i < curveXY.Count; i++)
@@ -346,7 +346,7 @@ namespace SkiaSharpTest.Draw
             return cI;
         }
 
-        public CanvasInfo DrawXlogYnature(CanvasInfo cI, List<PressureSpeed> curveXY)
+        public CanvasInfo CurveXlogYnature(CanvasInfo cI, List<PressureSpeed> curveXY)
         {
             //用一次性畫布作圖存成saveBitmap
             using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap))
@@ -360,7 +360,7 @@ namespace SkiaSharpTest.Draw
             return cI;
         }
 
-        public CanvasInfo DrawXlogYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
+        public CanvasInfo CurveXlogYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
         {
             //用一次性畫布作圖存成saveBitmap
             using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap))
@@ -374,7 +374,7 @@ namespace SkiaSharpTest.Draw
             return cI;
         }
 
-        public CanvasInfo DrawXnatureYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
+        public CanvasInfo CurveXnatureYlog(CanvasInfo cI, List<PressureSpeed> curveXY)
         {
             //用一次性畫布作圖存成saveBitmap
             using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap))

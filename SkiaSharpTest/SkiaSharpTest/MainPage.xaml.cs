@@ -19,10 +19,15 @@ namespace SkiaSharpTest
         List<PressureSpeed> RowDeliverySpeed = new List<PressureSpeed>();
 
         CanvasInfo rowTubeCanvas = new CanvasInfo();
-        List<PressureSpeed> RowPressureConductance = new List<PressureSpeed>();
+        List<PressureSpeed> RowConductance = new List<PressureSpeed>();
 
         CanvasInfo finePumpCanvas = new CanvasInfo();
-        List<PressureSpeed> VacCalc = new List<PressureSpeed>();
+        List<PressureSpeed> FinePumpingSpeed = new List<PressureSpeed>();
+        List<PressureSpeed> FineConductance = new List<PressureSpeed>();
+        List<PressureSpeed> FineDeliverySpeed = new List<PressureSpeed>();
+        List<PressureSpeed> FinePDTimeNoL = new List<PressureSpeed>();
+        List<PressureSpeed> FinePDTimeLoss = new List<PressureSpeed>();
+        List<PressureSpeed> FinePDTimeOutG = new List<PressureSpeed>();
 
         int bitMapNum=1;
 
@@ -145,75 +150,78 @@ namespace SkiaSharpTest
 
             RowPumpingSpeed.Clear();
             RowDeliverySpeed.Clear();
-            RowPressureConductance.Clear();
-            VacCalc.Clear();
+            RowConductance.Clear();
+            FinePumpingSpeed.Clear();
+            FinePDTimeNoL.Clear();
+            FinePDTimeLoss.Clear();
+            FinePDTimeOutG.Clear();
             //page3
             //
             //載入Puming curve
             for (int i= 0; i< TempList.Count; i++)
             {
-                RowPumpingSpeed.Add      (new PressureSpeed () { ValueX = TempList[i].ValueX, ValueY = TempList[i].ValueY });
-                RowDeliverySpeed.Add      (new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
-                RowPressureConductance.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
-                VacCalc.Add               (new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = TempList[i].ValueY });                 
+                RowPumpingSpeed.Add(new PressureSpeed () { ValueX = TempList[i].ValueX, ValueY = TempList[i].ValueY });
+                RowDeliverySpeed.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
+                RowConductance.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = 0 });
+                FinePumpingSpeed.Add(new PressureSpeed() { ValueX = TempList[i].ValueX, ValueY = TempList[i].ValueY });
             }
-            rowPumpCanvas = drawGrid.InitXlogYnature(rowPumpCanvas, RowPumpingSpeed);
-            rowPumpCanvas = drawGrid.DrawXlogYnature(rowPumpCanvas, RowPumpingSpeed);
+            rowPumpCanvas = drawGrid.FormXlogYnature(rowPumpCanvas, RowPumpingSpeed);
+            rowPumpCanvas = drawGrid.CurveXlogYnature(rowPumpCanvas, RowPumpingSpeed);
             //page4
             //
             //計算各壓力流導
             float alpha;
             float viscousBody;
             float molecularBody;
-            for(int i= 0; i< RowPressureConductance.Count; i++)
+            for(int i= 0; i< RowConductance.Count; i++)
             {
                 alpha = 4 * tubeDia / 3 / tubeLength;
-                viscousBody = 0.0327f * (float)Math.Pow(tubeDia, 4) * RowPressureConductance[i].ValueX / (tubeLength * 0.0001708f);
+                viscousBody = 0.0327f * (float)Math.Pow(tubeDia, 4) * RowConductance[i].ValueX / (tubeLength * 0.0001708f);
                 molecularBody = 11.43f * alpha * (float)(Math.Sqrt(293.15 / 28.966f) * Math.Pow(tubeDia / 2f, 2));
-                RowPressureConductance[i].ValueY = viscousBody + molecularBody;
+                RowConductance[i].ValueY = viscousBody + molecularBody;
             }
-            rowTubeCanvas = drawGrid.InitXlogYlog(rowTubeCanvas, RowPressureConductance);
-            rowTubeCanvas = drawGrid.DrawXlogYlog(rowTubeCanvas, RowPressureConductance);
+            rowTubeCanvas = drawGrid.FormXlogYlog(rowTubeCanvas, RowConductance);
+            rowTubeCanvas = drawGrid.CurveXlogYlog(rowTubeCanvas, RowConductance);
             //refine page3
             //
             //calculate delivery speed
             for(int i= 0; i< RowPumpingSpeed.Count; i++)
             {
-                RowDeliverySpeed[i].ValueY = RowPumpingSpeed[i].ValueY * RowPressureConductance[i].ValueY / (RowPumpingSpeed[i].ValueY + RowPressureConductance[i].ValueY);
+                RowDeliverySpeed[i].ValueY = RowPumpingSpeed[i].ValueY * RowConductance[i].ValueY / (RowPumpingSpeed[i].ValueY + RowConductance[i].ValueY);
             }
-            rowPumpCanvas = drawGrid.DrawXlogYnature (rowPumpCanvas, RowDeliverySpeed );
+            rowPumpCanvas = drawGrid.CurveXlogYnature (rowPumpCanvas, RowDeliverySpeed );
 
             //page 5
             //
             //高於startPressure的座標只留最接近那個
-            while (VacCalc[1].ValueX  >= startPressure)
+            while (FinePumpingSpeed[1].ValueX  >= startPressure)
             {
-                VacCalc.RemoveAt(0);
+                FinePumpingSpeed.RemoveAt(0);
             } 
             //低於endPressure的座標只留最接近那個
-            while (VacCalc[VacCalc.Count - 2].ValueX  <= endPressure)
+            while (FinePumpingSpeed[FinePumpingSpeed.Count - 2].ValueX  <= endPressure)
             {
-                VacCalc.RemoveAt(VacCalc.Count - 1);
+                FinePumpingSpeed.RemoveAt(FinePumpingSpeed.Count - 1);
             }
             //高於startPressure的座標Pressur=startPressure;Spee=線性內插
             //低於endPressure的座標Pressur=endPressure;Spee=線性內插                              
-            int Idx = VacCalc.Count - 1;
-            VacCalc[0].ValueY = MidPoint(VacCalc[0].ValueX , VacCalc[0].ValueY , VacCalc[1].ValueX , VacCalc[1].ValueY , startPressure);
-            VacCalc[0].ValueX  = startPressure;
-            VacCalc[Idx].ValueY  = MidPoint(VacCalc[Idx - 1].ValueX , VacCalc[Idx - 1].ValueY , VacCalc[Idx].ValueX , VacCalc[Idx].ValueY , endPressure);
-            VacCalc[Idx].ValueX  = endPressure;
+            int Idx = FinePumpingSpeed.Count - 1;
+            FinePumpingSpeed[0].ValueY = MidPoint(FinePumpingSpeed[0].ValueX , FinePumpingSpeed[0].ValueY , FinePumpingSpeed[1].ValueX , FinePumpingSpeed[1].ValueY , startPressure);
+            FinePumpingSpeed[0].ValueX  = startPressure;
+            FinePumpingSpeed[Idx].ValueY  = MidPoint(FinePumpingSpeed[Idx - 1].ValueX , FinePumpingSpeed[Idx - 1].ValueY , FinePumpingSpeed[Idx].ValueX , FinePumpingSpeed[Idx].ValueY , endPressure);
+            FinePumpingSpeed[Idx].ValueX  = endPressure;
 
-            for (int i = 0; i < VacCalc.Count; i++)
+            for (int i = 0; i < FinePumpingSpeed.Count; i++)
             {
-                VacCalc[i].ValueX = (float)Math.Log10(VacCalc[i].ValueX);
+                FinePumpingSpeed[i].ValueX = (float)Math.Log10(FinePumpingSpeed[i].ValueX);
             }
             //計算內差的刻度
-            incrementPress = (VacCalc[0].ValueX  - VacCalc[Idx].ValueX ) / incrementNum;
-            float speedMax = VacCalc[0].ValueY ;
-            for (int i = 1; i < VacCalc.Count; i++)
+            incrementPress = (FinePumpingSpeed[0].ValueX  - FinePumpingSpeed[Idx].ValueX ) / incrementNum;
+            float speedMax = FinePumpingSpeed[0].ValueY ;
+            for (int i = 1; i < FinePumpingSpeed.Count; i++)
             {
-                if (speedMax < VacCalc[i].ValueY )
-                    speedMax = VacCalc[i].ValueY ;
+                if (speedMax < FinePumpingSpeed[i].ValueY )
+                    speedMax = FinePumpingSpeed[i].ValueY ;
             }
             incrementSpeed = speedMax / incrementNum;
 
@@ -221,45 +229,56 @@ namespace SkiaSharpTest
             //距離太遠的兩點插入點
             float insX, insY;
             Idx = 1;
-            while (Idx < VacCalc.Count)
+            while (Idx < FinePumpingSpeed.Count)
             {
                 //大於1代表兩點距離太寬;
-                insX = (VacCalc[Idx - 1].ValueX  - VacCalc[Idx].ValueX ) / incrementPress;
-                insY = Math.Abs(VacCalc[Idx - 1].ValueY - VacCalc[Idx].ValueY ) / incrementSpeed;
+                insX = (FinePumpingSpeed[Idx - 1].ValueX  - FinePumpingSpeed[Idx].ValueX ) / incrementPress;
+                insY = Math.Abs(FinePumpingSpeed[Idx - 1].ValueY - FinePumpingSpeed[Idx].ValueY ) / incrementSpeed;
                 if (insX > 1f ^ insY > 1f)
                 {
                     //兩點之間是X比較寬還是Y比較寬
                     if (insX > insY)
                     {
-                        insX = VacCalc[Idx - 1].ValueX  - incrementPress;
-                        insY = MidPoint(VacCalc[Idx - 1].ValueX , VacCalc[Idx - 1].ValueY, VacCalc[Idx].ValueX, VacCalc[Idx].ValueY, insX);
-                        VacCalc.Insert(Idx, new PressureSpeed() { ValueX = insX, ValueY = insY });
+                        insX = FinePumpingSpeed[Idx - 1].ValueX  - incrementPress;
+                        insY = MidPoint(FinePumpingSpeed[Idx - 1].ValueX , FinePumpingSpeed[Idx - 1].ValueY, FinePumpingSpeed[Idx].ValueX, FinePumpingSpeed[Idx].ValueY, insX);
+                        FinePumpingSpeed.Insert(Idx, new PressureSpeed() { ValueX = insX, ValueY = insY });
                     }
                     else
                     {
                         //insY已經是絕對值,要重新判斷正負
-                        if (VacCalc[Idx - 1].ValueY > VacCalc[Idx].ValueY )
+                        if (FinePumpingSpeed[Idx - 1].ValueY > FinePumpingSpeed[Idx].ValueY )
                         {
-                            insY = VacCalc[Idx - 1].ValueY  - incrementSpeed;
+                            insY = FinePumpingSpeed[Idx - 1].ValueY  - incrementSpeed;
                         }
                         else
                         {
-                            insY = VacCalc[Idx - 1].ValueY  + incrementSpeed;
+                            insY = FinePumpingSpeed[Idx - 1].ValueY  + incrementSpeed;
                         }
-                        insX = MidPoint(VacCalc[Idx - 1].ValueY , VacCalc[Idx - 1].ValueX , VacCalc[Idx].ValueY , VacCalc[Idx].ValueX, insY);
-                        VacCalc.Insert(Idx, new PressureSpeed() { ValueX = insX,ValueY  = insY });
+                        insX = MidPoint(FinePumpingSpeed[Idx - 1].ValueY , FinePumpingSpeed[Idx - 1].ValueX , FinePumpingSpeed[Idx].ValueY , FinePumpingSpeed[Idx].ValueX, insY);
+                        FinePumpingSpeed.Insert(Idx, new PressureSpeed() { ValueX = insX,ValueY  = insY });
                     }
                 }
                 Idx++;
             }
 
-            for (int i = 0; i < VacCalc.Count; i++)
+            for (int i = 0; i < FinePumpingSpeed.Count; i++)
             {
-                VacCalc[i].ValueX = (float)Math.Pow (10,VacCalc[i].ValueX);
+                FinePumpingSpeed[i].ValueX = (float)Math.Pow (10,FinePumpingSpeed[i].ValueX);
             }
 
-            finePumpCanvas = drawGrid.InitXlogYnature(finePumpCanvas, VacCalc);
-            finePumpCanvas = drawGrid.DrawXlogYnature(finePumpCanvas, VacCalc);
+
+            FinePDTimeOutG = FinePDTimeLoss = FinePDTimeNoL = FinePumpingSpeed;
+            FinePDTimeNoL[0].ValueY = 0;
+            for (int i = 1; i < FinePDTimeNoL.Count; i++)
+            {
+                FinePDTimeNoL[i].ValueY = chamberVolume * 2/(FinePumpingSpeed[i - 1].ValueY + FinePumpingSpeed[i].ValueY) * (float)Math.Log(FinePumpingSpeed[i - 1].ValueX / FinePumpingSpeed[i].ValueX);
+            }
+            for (int i = 1; i < FinePDTimeNoL.Count; i++)
+            {
+                FinePDTimeNoL[i].ValueY =FinePDTimeNoL[i - 1].ValueY + FinePDTimeNoL[i].ValueY ;
+            }
+            finePumpCanvas = drawGrid.FormXlogYnature(finePumpCanvas, FinePDTimeNoL);
+            finePumpCanvas = drawGrid.CurveXlogYnature(finePumpCanvas, FinePDTimeNoL);
 
             canvasViewPS.InvalidateSurface();
         }
