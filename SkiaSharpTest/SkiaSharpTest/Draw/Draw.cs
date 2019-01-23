@@ -276,10 +276,14 @@ namespace SkiaSharpTest.Draw
             //開始PS curve
             //
             //計算左邊的留多少文字空間
-            float tempFloat = cI.YMax;
+            float tempFloat;
+            tempFloat = (float) Math.Pow(10, cI.YMax);
             string tempString = tempFloat.ToString();
+            tempFloat = (float)Math.Pow(10, cI.YMin);
+            string tempString1 = tempFloat.ToString();
+            tempFloat = Math.Max(textPaint.MeasureText(tempString ) , textPaint.MeasureText(tempString1));
 
-            cI.PaddingL = textPaint.MeasureText(tempString) + textPaint.TextSize / 2f;
+            cI.PaddingL = tempFloat + textPaint.TextSize / 2f;
 
             //計算上標題列高
             cI.PaddingU = textPaint.TextSize * 2f;
@@ -292,8 +296,8 @@ namespace SkiaSharpTest.Draw
             //計算下刻度列高
             cI.PaddingD = textPaint.TextSize * 1.5f;
 
-            cI.XScale = (cI.CanvasWidth - cI.PaddingL - cI.PaddingR) / (cI.XMax - cI.XMin);
-            cI.YScale = (cI.CanvasHeight - cI.PaddingU - cI.PaddingD) / cI.YMax;
+            cI.XScale = (cI.CanvasWidth - cI.PaddingL - cI.PaddingR) / cI.XMax;
+            cI.YScale = (cI.CanvasHeight - cI.PaddingU - cI.PaddingD) / (cI.YMax -cI.YMin );
             using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap))
             {
 
@@ -354,7 +358,7 @@ namespace SkiaSharpTest.Draw
                 //畫曲線
                 for (int i = 0; i < curveXY.Count - 1; i++)
                 {
-                    newcanvas.DrawLine(((float)Math.Log10(curveXY[i].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingU - curveXY[i].ValueY * cI.YScale, ((float)Math.Log10(curveXY[i + 1].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingU - curveXY[i + 1].ValueY * cI.YScale, blueStrokePaint);
+                    newcanvas.DrawLine(((float)Math.Log10(curveXY[i].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD - curveXY[i].ValueY * cI.YScale, ((float)Math.Log10(curveXY[i + 1].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD - curveXY[i + 1].ValueY * cI.YScale, blueStrokePaint);
                 }
             }
             return cI;
@@ -368,7 +372,7 @@ namespace SkiaSharpTest.Draw
                 //畫曲線
                 for (int i = 0; i < curveXY.Count - 1; i++)
                 {
-                    newcanvas.DrawLine(((float)Math.Log10(curveXY[i].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingU - ((float)Math.Log10(curveXY[i].ValueY) - cI.YMin ) * cI.YScale, ((float)Math.Log10(curveXY[i + 1].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingU - ((float)Math.Log10(curveXY[i + 1].ValueY) - cI.YMin ) * cI.YScale, blueStrokePaint);
+                    newcanvas.DrawLine(((float)Math.Log10(curveXY[i].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD - ((float)Math.Log10(curveXY[i].ValueY) - cI.YMin ) * cI.YScale, ((float)Math.Log10(curveXY[i + 1].ValueX) - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD - ((float)Math.Log10(curveXY[i + 1].ValueY) - cI.YMin ) * cI.YScale, blueStrokePaint);
                 }
             }
             return cI;
@@ -382,7 +386,7 @@ namespace SkiaSharpTest.Draw
                 //畫曲線
                 for (int i = 0; i < curveXY.Count - 1; i++)
                 {
-                    newcanvas.DrawLine(curveXY[i].ValueX * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingU - ((float)Math.Log10(curveXY[i].ValueY) - cI.YMin) * cI.YScale, curveXY[i + 1].ValueX * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingU - ((float)Math.Log10(curveXY[i + 1].ValueY) - cI.YMin) * cI.YScale, blueStrokePaint);
+                    newcanvas.DrawLine(curveXY[i].ValueX * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD - ((float)Math.Log10(curveXY[i].ValueY) - cI.YMin) * cI.YScale, curveXY[i + 1].ValueX * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD - ((float)Math.Log10(curveXY[i + 1].ValueY) - cI.YMin) * cI.YScale, blueStrokePaint);
                 }
             }
             return cI;

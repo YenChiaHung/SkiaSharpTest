@@ -267,18 +267,17 @@ namespace SkiaSharpTest
             }
 
 
-            FinePDTimeOutG = FinePDTimeLoss = FinePDTimeNoL = FinePumpingSpeed;
-            FinePDTimeNoL[0].ValueY = 0;
-            for (int i = 1; i < FinePDTimeNoL.Count; i++)
-            {
-                FinePDTimeNoL[i].ValueY = chamberVolume * 2/(FinePumpingSpeed[i - 1].ValueY + FinePumpingSpeed[i].ValueY) * (float)Math.Log(FinePumpingSpeed[i - 1].ValueX / FinePumpingSpeed[i].ValueX);
-            }
-            for (int i = 1; i < FinePDTimeNoL.Count; i++)
-            {
-                FinePDTimeNoL[i].ValueY =FinePDTimeNoL[i - 1].ValueY + FinePDTimeNoL[i].ValueY ;
-            }
-            finePumpCanvas = drawGrid.FormXlogYnature(finePumpCanvas, FinePDTimeNoL);
-            finePumpCanvas = drawGrid.CurveXlogYnature(finePumpCanvas, FinePDTimeNoL);
+            //FinePDTimeNoL = FinePumpingSpeed;
+            FinePDTimeNoL.Add(new PressureSpeed(){ ValueX = 0,ValueY = FinePumpingSpeed[0].ValueX});
+            for (int i = 1; i < FinePumpingSpeed.Count; i++)
+                FinePDTimeNoL.Add(new PressureSpeed()
+                {
+                    ValueX = FinePDTimeNoL[i - 1].ValueX + chamberVolume * 2 / (FinePumpingSpeed[i - 1].ValueY + FinePumpingSpeed[i].ValueY) * (float)Math.Log(FinePumpingSpeed[i - 1].ValueX / FinePumpingSpeed[i].ValueX),
+                    ValueY = FinePumpingSpeed[i].ValueX
+                });
+            
+            finePumpCanvas = drawGrid.FormXnatureYlog (finePumpCanvas, FinePDTimeNoL);
+            finePumpCanvas = drawGrid.CurveXnatureYlog (finePumpCanvas, FinePDTimeNoL);
 
             canvasViewPS.InvalidateSurface();
         }
