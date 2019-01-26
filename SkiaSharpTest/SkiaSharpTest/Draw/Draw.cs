@@ -21,6 +21,9 @@ namespace SkiaSharpTest.Draw
                 textPaint.TextSize = textPaint.TextSize * App.ScreenHeight / 160f;
             }
             textPaint3X2.TextSize = textPaint.TextSize * 1.5f;
+            blackStrokePaint.StrokeWidth = App.ScreenDensity ;
+            redStrokePaint.StrokeWidth = App.ScreenDensity ;
+            blueStrokePaint.StrokeWidth = App.ScreenDensity*2;
         }
         public CanvasInfo FormXlogYnature(CanvasInfo cI, List<PressureSpeed> curveXY)
         {
@@ -78,7 +81,7 @@ namespace SkiaSharpTest.Draw
             //計算右邊的留多少文字空間             
             tempFloat = (float)Math.Pow(10, cI.XMax);
             tempString = tempFloat.ToString();
-            cI.PaddingR = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 4f;
+            cI.PaddingR = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 2f;
 
             //計算下刻度列高
             cI.PaddingD = textPaint.TextSize * 1.5f;
@@ -87,47 +90,51 @@ namespace SkiaSharpTest.Draw
             cI.YScale = (cI.CanvasHeight - cI.PaddingU - cI.PaddingD) / cI.YMax;
             using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap))
             {
+                float textWidth;
                 newcanvas.Clear(SKColors.White);
                 //畫垂直格線
+
                 for (float i = 0; i < cI.XMax - cI.XMin; i++)
-                {
-                    SKColor colorSave = blackStrokePaint.Color;
-                    blackStrokePaint.Color = SKColors.Red;
+                {                    
                     for (float j = 1; j < 10; j++)
                     {
                         //畫小刻度線
                         newcanvas.DrawLine((i + (float)Math.Log10(j)) * cI.XScale + cI.PaddingL, cI.PaddingU, (i + (float)Math.Log10(j)) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, redStrokePaint);
                     }
-                    blackStrokePaint.Color = colorSave;
 
                     newcanvas.DrawLine(i * cI.XScale + cI.PaddingL, cI.PaddingU, i * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
 
                     //刻度值轉文字
                     tempFloat = (float)Math.Pow(10, i + cI.XMin);
                     tempString = tempFloat.ToString();
-                    float textWidth = textPaint.MeasureText(tempString);
-                    newcanvas.DrawText(tempString, i * cI.XScale + cI.PaddingL - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize * 1.25f, textPaint);
+                    textWidth = textPaint.MeasureText(tempString);
+                    newcanvas.DrawText(tempString, i * cI.XScale + cI.PaddingL - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize, textPaint);
                 }
-                newcanvas.DrawLine((cI.XMax - cI.XMin) * cI.XScale + cI.PaddingL, cI.PaddingU, (cI.XMax - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
+                newcanvas.DrawLine(cI.CanvasWidth -cI.PaddingR , cI.PaddingU,cI.CanvasWidth -cI.PaddingR , cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
+                tempFloat = (float)Math.Pow(10, cI.XMax);
+                tempString = tempFloat.ToString();
+                textWidth = textPaint.MeasureText(tempString);
+                newcanvas.DrawText(tempString, cI.CanvasWidth - cI.PaddingR - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize , textPaint);
 
                 //畫水平格線
                 for (float i = 0; i < cI.YMax; i = i + cI.YMultiplier)
-                {
-                    SKColor colorSave = blackStrokePaint.Color;
-                    blackStrokePaint.Color = SKColors.Red;
+                {                   
                     for (float j = cI.YMultiplier / 10; j < cI.YMultiplier; j = j + cI.YMultiplier / 10)
                     {
                         newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - (i + j) * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - (i + j) * cI.YScale, redStrokePaint);
-                    }
-                    blackStrokePaint.Color = colorSave;
+                    }                  
 
                     newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, blackStrokePaint);
 
                     tempString = i.ToString();
-                    float textWidth = textPaint.MeasureText(tempString);
+                    textWidth = textPaint.MeasureText(tempString);
                     newcanvas.DrawText(tempString, cI.PaddingL - textWidth - textPaint.TextSize / 4, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, textPaint);
                 }
-                newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - cI.YMax * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - cI.YMax * cI.YScale, blackStrokePaint);
+                newcanvas.DrawLine(cI.PaddingL, cI.PaddingU, cI.CanvasWidth - cI.PaddingR, cI.PaddingU, blackStrokePaint);
+                tempFloat = cI.YMax;
+                tempString = tempFloat.ToString();
+                textWidth = textPaint.MeasureText(tempString);
+                newcanvas.DrawText(tempString, cI.PaddingL - textWidth - textPaint.TextSize / 4, cI.PaddingU, textPaint);
 
                 //畫標題欄
                 tempString = "L/sec VS Torr";
@@ -160,8 +167,8 @@ namespace SkiaSharpTest.Draw
             cI.YMin = (float)Math.Floor(cI.YMin);
                                   
             //計算左邊的留多少文字空間
-            float tempFloat = cI.YMax;
-            string tempString = tempFloat.ToString();
+            float tempFloat = (float) Math.Pow(10, cI.YMax);
+            string tempString = tempFloat.ToString("F0");
 
             cI.PaddingL = textPaint.MeasureText(tempString) + textPaint.TextSize / 2f;
 
@@ -171,7 +178,7 @@ namespace SkiaSharpTest.Draw
             //計算右邊的留多少文字空間             
             tempFloat = (float)Math.Pow(10, cI.XMax);
             tempString = tempFloat.ToString();
-            cI.PaddingR = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 4f;
+            cI.PaddingR = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 2f;
 
             //計算下刻度列高
             cI.PaddingD = textPaint.TextSize * 1.5f;
@@ -181,49 +188,53 @@ namespace SkiaSharpTest.Draw
 
             using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap))
             {
+                float textWidth;
                 newcanvas.Clear(SKColors.White);
                 //畫垂直格線
                 for (float i = 0; i < cI.XMax - cI.XMin; i++)
-                {
-                    SKColor colorSave = blackStrokePaint.Color;
-                    blackStrokePaint.Color = SKColors.Red;
+                {                    
                     for (float j = 1; j < 10; j++)
                     {
                         //畫小刻度線
                         newcanvas.DrawLine((i + (float)Math.Log10(j)) * cI.XScale + cI.PaddingL, cI.PaddingU, (i + (float)Math.Log10(j)) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, redStrokePaint);
                     }
-                    blackStrokePaint.Color = colorSave;
 
                     newcanvas.DrawLine(i * cI.XScale + cI.PaddingL, cI.PaddingU, i * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
 
                     //刻度值轉文字
                     tempFloat = (float)Math.Pow(10, i + cI.XMin);
                     tempString = tempFloat.ToString();
-                    float textWidth = textPaint.MeasureText(tempString);
-                    newcanvas.DrawText(tempString, i * cI.XScale + cI.PaddingL - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize * 1.25f, textPaint);
+                    textWidth = textPaint.MeasureText(tempString);
+                    newcanvas.DrawText(tempString, i * cI.XScale + cI.PaddingL - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize , textPaint);
                 }
-                newcanvas.DrawLine((cI.XMax - cI.XMin) * cI.XScale + cI.PaddingL, cI.PaddingU, (cI.XMax - cI.XMin) * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
-
+                newcanvas.DrawLine(cI.CanvasWidth - cI.PaddingR, cI.PaddingU, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
+                tempFloat = (float)Math.Pow(10, cI.XMax);
+                tempString = tempFloat.ToString();
+                textWidth = textPaint.MeasureText(tempString);
+                newcanvas.DrawText(tempString, cI.CanvasWidth - cI.PaddingR - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize, textPaint);
+                
                 //畫水平格線
                 for (float i = 0; i < cI.YMax - cI.YMin; i++)
                 {
-                    SKColor colorSave = blackStrokePaint.Color;
-                    blackStrokePaint.Color = SKColors.Red;
                     for (float j = 1; j < 10; j++)
                     {
                         //畫小刻度線
-                        newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - (i + j) * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - (i + j) * cI.YScale, redStrokePaint);
+                        newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - (i + (float) Math.Log10( j)) * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - (i + (float) Math.Log10( j)) * cI.YScale, redStrokePaint);
                     }
-                    blackStrokePaint.Color = colorSave;
 
                     newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, blackStrokePaint);
 
                     //刻度值轉文字
-                    tempString = i.ToString();
-                    float textWidth = textPaint.MeasureText(tempString);
+                    tempFloat = (float)Math.Pow(10, i + cI.YMin);
+                    tempString = tempFloat.ToString();
+                    textWidth = textPaint.MeasureText(tempString);
                     newcanvas.DrawText(tempString, cI.PaddingL - textWidth - textPaint.TextSize / 4, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, textPaint);
                 }
-                newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - cI.YMax * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - cI.YMax * cI.YScale, blackStrokePaint);
+                newcanvas.DrawLine(cI.PaddingL, cI.PaddingU , cI.CanvasWidth - cI.PaddingR,cI.PaddingU , blackStrokePaint);
+                tempFloat = (float)Math.Pow(10, cI.YMax);
+                tempString = tempFloat.ToString("F0");
+                textWidth = textPaint.MeasureText(tempString);
+                newcanvas.DrawText(tempString, cI.PaddingL - textWidth - textPaint.TextSize / 4, cI.PaddingU, textPaint);
 
                 //畫標題欄
                 tempString = "L/sec VS Torr";
@@ -289,9 +300,9 @@ namespace SkiaSharpTest.Draw
             cI.PaddingU = textPaint.TextSize * 2f;
 
             //計算右邊的留多少文字空間             
-            tempFloat = (float)Math.Pow(10, cI.XMax);
+            tempFloat = cI.XMax;
             tempString = tempFloat.ToString();
-            cI.PaddingR = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 4f;
+            cI.PaddingR = (textPaint.MeasureText(tempString) + textPaint.TextSize) / 2f;
 
             //計算下刻度列高
             cI.PaddingD = textPaint.TextSize * 1.5f;
@@ -300,26 +311,26 @@ namespace SkiaSharpTest.Draw
             cI.YScale = (cI.CanvasHeight - cI.PaddingU - cI.PaddingD) / (cI.YMax -cI.YMin );
             using (SKCanvas newcanvas = new SKCanvas(cI.SaveBitMap))
             {
-
+                float textWidth;
                 newcanvas.Clear(SKColors.White);
                 //畫垂直格線
                 for (float i = 0; i < cI.XMax ; i = i + cI.XMultiplier )
                 {
-                    SKColor colorSave = blackStrokePaint.Color;
-                    blackStrokePaint.Color = SKColors.Red;
                     for (float j = cI.XMultiplier / 10; j < cI.XMultiplier ; j = j + cI.XMultiplier / 10)
                     {
                         newcanvas.DrawLine(cI.PaddingL + ( i + j ) * cI.XScale ,cI.PaddingU ,cI.PaddingL + (i + j) * cI.XScale ,cI.CanvasHeight - cI.PaddingD , redStrokePaint);
                     }
-                    blackStrokePaint.Color = colorSave;
-
                     newcanvas.DrawLine(cI.PaddingL + i * cI.XScale, cI.PaddingU, cI.PaddingL + i * cI.XScale, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
 
                     tempString = i.ToString();
-                    float textWidth = textPaint.MeasureText(tempString);
-                    newcanvas.DrawText(tempString, i * cI.XScale + cI.PaddingL - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize * 1.25f, textPaint);
+                    textWidth = textPaint.MeasureText(tempString);
+                    newcanvas.DrawText(tempString, i * cI.XScale + cI.PaddingL - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize , textPaint);
                 }               
                 newcanvas.DrawLine(cI.XMax * cI.XScale + cI.PaddingL, cI.PaddingU, cI.XMax  * cI.XScale + cI.PaddingL, cI.CanvasHeight - cI.PaddingD, blackStrokePaint);
+                tempFloat = cI.XMax;
+                tempString = tempFloat.ToString();
+                textWidth = textPaint.MeasureText(tempString);
+                newcanvas.DrawText(tempString, cI.CanvasWidth - cI.PaddingR - textWidth / 2, cI.CanvasHeight - cI.PaddingD + textPaint.TextSize, textPaint);
 
                 //畫水平格線
                 for (float i = 0; i < cI.YMax - cI.YMin ; i++)
@@ -337,10 +348,14 @@ namespace SkiaSharpTest.Draw
                     //刻度值轉文字
                     tempFloat = (float)Math.Pow(10, i + cI.YMin);
                     tempString = tempFloat.ToString();
-                    float textWidth = textPaint.MeasureText(tempString);
+                    textWidth = textPaint.MeasureText(tempString);
                     newcanvas.DrawText(tempString, cI.PaddingL - textWidth - textPaint.TextSize / 4, cI.CanvasHeight - cI.PaddingD - i * cI.YScale, textPaint);
                 }
-                newcanvas.DrawLine(cI.PaddingL, cI.CanvasHeight - cI.PaddingD - (cI.YMax - cI.YMin) * cI.YScale, cI.CanvasWidth - cI.PaddingR, cI.CanvasHeight - cI.PaddingD - (cI.YMax - cI.YMin)  * cI.YScale, blackStrokePaint);
+                newcanvas.DrawLine(cI.PaddingL, cI.PaddingU, cI.CanvasWidth - cI.PaddingR,cI.PaddingU, blackStrokePaint);
+                tempFloat = (float)Math.Pow(10, cI.YMax);
+                tempString = tempFloat.ToString("F0");
+                textWidth = textPaint.MeasureText(tempString);
+                newcanvas.DrawText(tempString, cI.PaddingL - textWidth - textPaint.TextSize / 4, cI.PaddingU, textPaint);
 
                 //畫標題欄
                 tempString = "Torr VS Second";
@@ -405,7 +420,7 @@ namespace SkiaSharpTest.Draw
         {
             Style = SKPaintStyle.Stroke,
             Color = SKColors.Black,
-            StrokeWidth = 3f,
+            StrokeWidth = 1f,
             StrokeCap = SKStrokeCap.Butt
             //PathEffect = SKPathEffect.CreateDash(new int[]{1, 2}, 20);
         };
@@ -421,7 +436,7 @@ namespace SkiaSharpTest.Draw
         {
             Style = SKPaintStyle.Stroke,
             Color = SKColors.Blue,
-            StrokeWidth = 3f,
+            StrokeWidth = 1f,
             StrokeCap = SKStrokeCap.Butt
         };
     }
