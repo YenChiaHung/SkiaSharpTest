@@ -9,11 +9,14 @@ using SkiaSharp.Views.Forms;
 using SkiaSharpTest.Models;
 using System.Collections.ObjectModel;
 using SkiaSharpTest.Draw;
+using System.Reflection;
+using System.IO;
 
 namespace SkiaSharpTest
 {
     public partial class MainPage : ContentPage
-    {                                      
+    {
+        CanvasInfo logoCanvas = new CanvasInfo();
         CanvasInfo rowPumpCanvas = new CanvasInfo();
         List<PressureSpeed> RowPumpingSpeed = new List<PressureSpeed>();
         List<PressureSpeed> RowDeliverySpeed = new List<PressureSpeed>();
@@ -44,7 +47,7 @@ namespace SkiaSharpTest
             InitializeComponent();
             drawGrid.Init();
             PumpListData = new ObservableCollection<PumpInfo>
-{
+            {
                 new PumpInfo ()
                 {
                     Maker ="HanBell" , PartNum ="PS902" ,  PSList = new List<PressureSpeed>
@@ -100,14 +103,26 @@ namespace SkiaSharpTest
             SKSurface surface = e.Surface;
             SKCanvas canvas = surface.Canvas;
 
-            rowPumpCanvas.CanvasWidth = rowTubeCanvas.CanvasWidth = finePumpCanvas.CanvasWidth = (float)e.Info.Width ;
+            //var image = new Image { Source = "VacCalc.png" };
             
-            rowPumpCanvas.CanvasHeight = rowTubeCanvas.CanvasHeight = finePumpCanvas.CanvasHeight = (float)e.Info.Height;
+            logoCanvas.CanvasWidth = rowPumpCanvas.CanvasWidth = rowTubeCanvas.CanvasWidth = finePumpCanvas.CanvasWidth = (float)e.Info.Width ;            
+            logoCanvas.CanvasHeight = rowPumpCanvas.CanvasHeight = rowTubeCanvas.CanvasHeight = finePumpCanvas.CanvasHeight = (float)e.Info.Height;
 
+            if (logoCanvas.SaveBitMap == null)
+            {
+                logoCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
+                string resourceID = "SkiaSharpTest.Media.clip_image0014_thumb.jpg";
+                Assembly assembly = GetType().GetTypeInfo().Assembly;
+
+                using (Stream stream = assembly.GetManifestResourceStream(resourceID))
+                {
+                    logoCanvas.SaveBitMap = SKBitmap.Decode(stream);
+                }               
+            }
             if (rowPumpCanvas.SaveBitMap == null)
             {
                 rowPumpCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
-            }                       
+            }
             if (rowTubeCanvas.SaveBitMap == null)
             {
                 rowTubeCanvas.SaveBitMap = new SKBitmap(info.Width, info.Height);
@@ -121,12 +136,12 @@ namespace SkiaSharpTest
             canvas.Clear(SKColors.White);
 
             if (bitMapNum == 1)
-            {
-                canvas.DrawBitmap(rowPumpCanvas.SaveBitMap, 0, 0);
+            {                
+                canvas.DrawBitmap(rowPumpCanvas.SaveBitMap , 0, 0);
             }
             if (bitMapNum == 2)
             {
-                canvas.DrawBitmap(rowPumpCanvas.SaveBitMap, 0, 0);
+                canvas.DrawBitmap(logoCanvas.SaveBitMap,new SKRect(0,0,logoCanvas.CanvasWidth ,logoCanvas.CanvasHeight ) );               
             }
             if (bitMapNum == 3)
             {
